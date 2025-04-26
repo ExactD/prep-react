@@ -4,6 +4,7 @@ import { MathJaxContext } from 'better-react-mathjax';
 import HelpPage from './HelpPage';
 import SmartText from './SmartText';
 import tasks from '../data/1805/Task';
+//https://latexeditor.lagrida.com/
 
 type ScreenMode = 'test' | 'help';
 
