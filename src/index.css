@@ -1,0 +1,377 @@
+.buttons-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 24px;
+    flex-wrap: nowrap;
+}
+  
+  .button-item {
+    flex: 1;
+    max-width: 100%;
+    padding: 12px 0;
+    background-color: #ced0eb;
+    color: rgb(0, 0, 0);
+    font-size: 16px;
+    text-align: center;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.2s ease;
+  }
+  
+  .button-item:hover {
+    background-color: #adb7c5;
+  }
+
+  .button-item.active {
+    outline: 2px solid #585858;
+    outline-offset: 2px;
+  }
+
+  .button-image {
+    width: 300px;
+    height: max-content;
+    border-radius: 10px;
+    object-fit: cover;
+    padding: 0 24px;
+  }
+
+  .button-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .main-text {
+    font-size: 22px;
+    color: #333;
+    max-width: 70%;
+    padding: 0 40px;
+  }
+
+  .help-button {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background-color: #facc15;
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+  }
+
+.back-help-button {
+  position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background-color: #facc15;
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 9999px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.help-image {
+  width: 600px;
+    height: max-content;
+    border-radius: 10px;
+    object-fit: cover;
+    padding: 0 24px;
+}
+
+.variant-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0 30px;
+}
+
+.variant-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 20px; /* Розмір тексту варіанту */
+  color: #333333;  /* Колір тексту варіанту */
+  gap: 0.5rem;
+}
+
+.variant-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+  min-width: 2rem;
+  color: #333;
+}
+
+.variant-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.variant-text {
+  font-size: 1rem;
+  color: #444;
+  font-size: 20px;
+}
+
+.variant-image {
+  max-width: 300px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.variant-buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  padding: 0 30px;
+}
+
+.variant-button {
+  width: 40px;
+  height: 40px;
+  margin: 0px;
+  border: 1px solid #999;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.variant-button.active {
+  background-color: #79e77d;
+  color: #ffffff;
+}
+
+.variant-button:hover {
+  background-color: #baf5c2;
+}
+
+.respond-text {
+  font-size: 22px;
+  color: #333;
+  padding: 0 30px;
+}
+
+.button-item.saved {
+  background-color: rgb(87, 206, 107);
+  color: white;
+}
+.variant-button.active {
+  background-color: #46d367;
+  color: white;
+}
+
+.save-button {
+  display: flex;
+}
+
+.save-task-button {
+  margin-top: 10px;
+  padding: 12px 60px;
+  font-weight: bold;
+  background-color: #1caf1c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #000000;
+  position:relative;
+  left: 30px;
+  top: 5px;
+}
+.save-task-button:hover {
+  background-color: #4db956;
+}
+
+.next-task-button {
+  margin-top: 10px;
+  padding: 12px 26px;
+  font-weight: bold;
+  background-color: #cccfcc;
+  color: rgb(29, 29, 29);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #000000;
+  position:relative;
+  left: 30px;
+  top: 5px;
+}
+
+.matching-grid {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0 60px;
+  font-size: 20px;
+  color: #2c2c2c;
+}
+
+.left-column, .right-column {
+  width: 48%;
+}
+
+.left-item, .variant-item {
+  margin-bottom: 0.75rem;
+}
+
+.variant-label {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.matching-button-grid {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0px;
+}
+
+.header-row,
+.matching-row {
+  display: flex;
+  align-items: center;
+}
+
+.corner-cell {
+  width: 32px;
+  height: 32px;
+}
+
+.column-label {
+  width: 46px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.row-label {
+  width: 32px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.matching-button {
+  width: 40px;
+  height: 40px;
+  margin: 3px;
+  border: 1px solid #999;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  font-size: 11px;
+}
+
+.matching-button:hover {
+  background-color: #e0e0e0;
+}
+
+.matching-button-grid {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-row,
+.matching-row {
+  display: flex;
+  align-items: center;
+}
+
+.corner-cell {
+  width: 32px;
+  height: 32px;
+}
+
+.column-label {
+  width: 44px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.row-label {
+  width: 32px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.matching-button {
+  width: 40px;
+  height: 40px;
+  margin: 2px;
+  border: 1px solid #999;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.matching-button:hover {
+  background-color: #e0e0e0;
+}
+
+.matching-button.active {
+  background-color: #79e77d;
+  color: #ffffff;
+}
+
+.button-item.partial {
+  background-color: #FFC107;
+  color: black;
+}
+
+.input-answer {
+  margin-left: 28px; /* Оце додає нормальний відступ */
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.input-field {
+  width: 180px;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  margin-top: 30px; /* Збільшено відступ зверху для поля */
+}
+
+.save-input-button {
+  margin-top: 40px; /* Збільшено відступ між полем і кнопкою */
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+.save-task-button:hover {
+  background-color: #45a049; /* Тінь для кнопки збереження */
+}
+
+.finish-button {
+  background-color: red; /* Червоний колір для кнопки завершення */
+}
+
+.finish-button:hover {
+  background-color: #d32f2f; /* Тінь для кнопки завершення */
+}
