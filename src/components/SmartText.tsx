@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MathJax } from 'better-react-mathjax';
 
 interface SmartTextProps {
@@ -6,8 +6,22 @@ interface SmartTextProps {
   className?: string;
 }
 
+declare global {
+  interface Window {
+    MathJax: {
+      typesetPromise?: () => Promise<void>;
+    };
+  }
+}
+
 const SmartText: React.FC<SmartTextProps> = ({ text, className }) => {
-  // Розбиваємо рядок по inline LaTeX виразах: \(...\)
+  // Примусово ререндеримо формули при зміні text
+  useEffect(() => {
+    if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+      window.MathJax.typesetPromise();
+    }
+  }, [text]);
+
   const parts = text.split(/(\\\(.*?\\\))/g);
 
   return (
