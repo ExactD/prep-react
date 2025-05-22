@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
-    "types": ["react", "react-dom"],
+    "types": [
+      "react",
+      "react-dom"
+    ],
     "target": "ES6",
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -15,7 +21,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "preserve"
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

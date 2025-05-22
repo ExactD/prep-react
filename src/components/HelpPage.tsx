@@ -1,4 +1,5 @@
 import testImage from '../image/help.jpg';
+import React from 'react';
 
 interface HelpPageProps {
   onBack: () => void;
