@@ -1,27 +1,26 @@
 .buttons-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 0 24px;
-    flex-wrap: nowrap;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 24px;
+  flex-wrap: nowrap;
 }
-  
-  .button-item {
-    flex: 1;
-    max-width: 100%;
-    padding: 12px 0;
-    background-color: #ced0eb;
-    color: rgb(0, 0, 0);
-    font-size: 16px;
-    text-align: center;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: background-color 0.2s ease;
-  }
+
+.button-item {
+  flex: 1;
+  padding: 12px 0;
+  background-color: #ced0eb;
+  color: rgb(0, 0, 0);
+  font-size: 16px;
+  text-align: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: normal; /* або 'nowrap', якщо треба одну строку */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.2s ease;
+}
   
   .button-item:hover {
     background-color: #adb7c5;
@@ -138,16 +137,19 @@
 }
 
 .variant-button {
-  width: 40px;
-  height: 40px;
-  margin: 0px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
   border: 1px solid #999;
   background-color: #f5f5f5;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .variant-button.active {

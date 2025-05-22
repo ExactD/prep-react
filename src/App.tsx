@@ -1,12 +1,102 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import StartPage from './components/StartPage';
+import TestSelection from './components/TestSelection';
 import Test1805 from './components/Test1805';
+import './startsstyle.css';
 
-class App extends Component {
-  render() {
+interface AppState {
+  isLoading: boolean;
+}
+
+class App extends Component<{}, AppState> {
+  constructor(props: {}) {
+    super(props);
+    this.state = {
+      isLoading: false
+    };
+  }
+
+  simulatePageLoad = (duration: number = 800) => {
+    this.setState({ isLoading: true });
+    
+    setTimeout(() => {
+      this.setState({ isLoading: false });
+    }, duration);
+  }
+
+  componentDidMount() {
+    this.simulatePageLoad(600);
+    window.addEventListener('popstate', this.handleBrowserNavigation);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this.handleBrowserNavigation);
+  }
+
+  handleBrowserNavigation = () => {
+    this.simulatePageLoad(500);
+  }
+
+  renderLoadingScreen = () => (
+    <div className="loading-screen">
+      <div className="loading-spinner"></div>
+      <p className="loading-text">Завантаження...</p>
+    </div>
+  )
+
+  PageWrapper = ({ children }: { children: React.ReactNode }) => {
+    React.useEffect(() => {
+      this.simulatePageLoad(600);
+    }, []);
+
     return (
-      <div>
-        <Test1805 />
+      <div className="page-content">
+        {children}
       </div>
+    );
+  }
+
+  render() {
+    const { isLoading } = this.state;
+
+    return (
+      <Router>
+        <div>
+          {isLoading && this.renderLoadingScreen()}
+          
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <this.PageWrapper>
+                  <StartPage />
+                </this.PageWrapper>
+              } 
+            />
+            
+            <Route 
+              path="/tests" 
+              element={
+                <this.PageWrapper>
+                  <TestSelection />
+                </this.PageWrapper>
+              } 
+            />
+            
+            <Route 
+              path="/test/1805" 
+              element={
+                <this.PageWrapper>
+                  <Test1805 />
+                </this.PageWrapper>
+              } 
+            />
+            
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
     );
   }
 }
