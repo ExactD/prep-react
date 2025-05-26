@@ -4,6 +4,7 @@ import StartPage from './components/StartPage';
 import TestSelection from './components/TestSelection';
 import Test1805 from './components/Test1805';
 import './startsstyle.css';
+import ProtectedRoute from './components/ProtectedRoute';
 
 interface AppState {
   isLoading: boolean;
@@ -70,7 +71,7 @@ class App extends Component<{}, AppState> {
               path="/" 
               element={
                 <this.PageWrapper>
-                  <StartPage />
+                    <StartPage />
                 </this.PageWrapper>
               } 
             />
@@ -79,7 +80,9 @@ class App extends Component<{}, AppState> {
               path="/tests" 
               element={
                 <this.PageWrapper>
-                  <TestSelection />
+                  <ProtectedRoute>
+                    <TestSelection />
+                  </ProtectedRoute>
                 </this.PageWrapper>
               } 
             />
@@ -88,7 +91,9 @@ class App extends Component<{}, AppState> {
               path="/test/1805" 
               element={
                 <this.PageWrapper>
-                  <Test1805 />
+                  <ProtectedRoute>
+                    <Test1805 />
+                  </ProtectedRoute>
                 </this.PageWrapper>
               } 
             />
