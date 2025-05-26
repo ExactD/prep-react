@@ -1,13 +1,15 @@
 import '../index.css';
+import '../endtest.css';
 import { useState, useEffect } from 'react';
 import { MathJaxContext } from 'better-react-mathjax';
 import HelpPage from './HelpPage';
 import SmartText from './SmartText';
 import tasks from '../data/1805/Task';
+import correctAnswers from '../data/1805/CorrectAnswers';
 import React from 'react';
 //https://latexeditor.lagrida.com/
 
-type ScreenMode = 'test' | 'help';
+type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion';
 
 const Test1805: React.FC = () => {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
@@ -16,6 +18,7 @@ const Test1805: React.FC = () => {
   const [finalAnswers, setFinalAnswers] = useState<(number | (number | null)[] | null)[]>(Array(tasks.length).fill(null));
   const [matchingSelections, setMatchingSelections] = useState<(Array<number | null>)[]>(Array(tasks.length).fill(null).map(() => [null, null, null]));
   const [inputAnswers, setInputAnswers] = useState<string[]>(Array(tasks.length).fill(''));
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -92,9 +95,7 @@ const Test1805: React.FC = () => {
     setFinalAnswers(updatedFinalAnswers);
   
     if (currentTaskIndex === tasks.length - 1) {
-      setTimeout(() => {
-        console.log('Результати користувача:', updatedFinalAnswers);
-      }, 0);
+      setScreenMode('confirmation');
     } else {
       setTimeout(() => {
         setCurrentTaskIndex(prev => prev + 1);
@@ -103,9 +104,151 @@ const Test1805: React.FC = () => {
     }
   };
 
+  const handleFinishTest = () => {
+    console.log('Результати користувача:', finalAnswers);
+    setScreenMode('completion');
+  };
+
+  const getAnswerSummary = () => {
+    let answered = 0;
+    let correct = 0;
+
+    finalAnswers.forEach((answer, index) => {
+      const task = tasks[index];
+      const isAnswered = task.type === 'matching' 
+        ? Array.isArray(answer) && answer.some(item => item !== null)
+        : answer !== null;
+
+      if (isAnswered) {
+        answered++;
+        if (isAnswerCorrect(answer, index)) {
+          correct++;
+        }
+      }
+    });
+
+    return { answered, correct, total: tasks.length };
+  };
+
+  const isAnswerCorrect = (userAnswer: any, taskIndex: number) => {
+    if (!correctAnswers[taskIndex]) return false;
+    
+    const correctAnswer = correctAnswers[taskIndex];
+    const task = tasks[taskIndex];
+
+    if (task.type === 'matching') {
+      if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) return false;
+      return userAnswer.every((answer, idx) => answer === correctAnswer[idx]);
+    } else if (task.type === 'input') {
+      return Number(userAnswer) === Number(correctAnswer);
+    } else {
+      return userAnswer === correctAnswer;
+    }
+  };
+
+  const formatAnswer = (answer: any, taskIndex: number) => {
+    const task = tasks[taskIndex];
+    
+    if (task.type === 'matching') {
+      if (Array.isArray(answer)) {
+        return answer.map((match, idx) => 
+          match !== null ? `${idx + 1} → ${['А', 'Б', 'В', 'Г', 'Д'][match]}` : `${idx + 1} → -`
+        ).join(', ');
+      }
+      return 'Не відповів';
+    } else if (task.type === 'input') {
+      return answer !== null ? answer.toString() : 'Не відповів';
+    } else {
+      return answer !== null ? ['А', 'Б', 'В', 'Г', 'Д'][answer] : 'Не відповів';
+    }
+  };
+
   const currentTask = tasks[currentTaskIndex];
-  const isMatchingType = currentTask.type === 'matching';
-  const isInputType = isInputTask(currentTask);
+  const isMatchingType = currentTask && currentTask.type === 'matching';
+  const isInputType = currentTask && isInputTask(currentTask);
+
+  if (screenMode === 'confirmation') {
+    const summary = getAnswerSummary();
+    
+    return (
+      <MathJaxContext>
+        <div className="confirmation-screen">
+          <div className="confirmation-content">
+            <h1>Підтвердження завершення тесту</h1>
+            
+            <div className="test-preview">
+              <h3>Попередній огляд результатів:</h3>
+              <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
+              <p><strong>Пропущено:</strong> {summary.total - summary.answered}</p>
+            </div>
+
+            <div className="warning-message">
+              <p>⚠️ Після підтвердження ви не зможете змінити свої відповіді!</p>
+              <p>Переконайтеся, що ви відповіли на всі потрібні завдання.</p>
+            </div>
+
+            <div className="confirmation-buttons">
+              <button 
+                onClick={() => setScreenMode('test')}
+                className="back-button"
+              >
+                Повернутися до тесту
+              </button>
+              <button 
+                onClick={handleFinishTest}
+                className="finish-button"
+              >
+                Завершити тест
+              </button>
+            </div>
+          </div>
+        </div>
+      </MathJaxContext>
+    );
+  }
+
+  if (screenMode === 'completion') {
+    const summary = getAnswerSummary();
+    
+    return (
+      <MathJaxContext>
+        <div className="completion-screen">
+          <h1>Тест завершено!</h1>
+          
+          <div className="test-summary">
+            <h2>Підсумок виконання:</h2>
+            <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
+            <p><strong>Правильних відповідей:</strong> {summary.correct}/22</p>
+            <p><strong>Відсоток правильних:</strong> {summary.answered > 0 ? Math.round((summary.correct / summary.answered) * 100) : 0}%</p>
+          </div>
+
+          <div className="detailed-results">
+            <h3>Детальні результати:</h3>
+            <div className="results-list">
+              {finalAnswers.map((answer, index) => {
+                const isCorrect = isAnswerCorrect(answer, index);
+                return (
+                  <div key={index} className={`result-item ${isCorrect ? 'correct' : ''}`}>
+                    <span className="task-number">Завдання {index + 1}:</span>
+                    <span className="answer-text">{formatAnswer(answer, index)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="completion-buttons">
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="back-to-menu-button"
+            >
+              Повернутися до вибору тестів
+            </button>
+          </div>
+        </div>
+      </MathJaxContext>
+    );
+  }
 
   return (
     <MathJaxContext>
@@ -291,6 +434,8 @@ const Test1805: React.FC = () => {
                 }
               </button>
             </div>
+
+            {/* Модальне вікно підтвердження видалено - тепер окрема стадія */}
 
             <button onClick={() => setScreenMode('help')} className="help-button">
               Довідка

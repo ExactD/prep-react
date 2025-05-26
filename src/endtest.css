@@ -1,0 +1,230 @@
+.confirmation-screen {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: white;
+  }
+
+  .confirmation-content {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+  }
+
+  .confirmation-screen h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .test-preview {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid #4CAF50;
+  }
+
+  .test-preview h3 {
+    color: #4CAF50;
+    margin-bottom: 15px;
+  }
+
+  .test-preview p {
+    margin: 8px 0;
+    font-size: 1.1rem;
+  }
+
+  .warning-message {
+    background: rgba(255, 193, 7, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid #FFC107;
+  }
+
+  .warning-message p {
+    margin: 8px 0;
+    font-weight: 500;
+  }
+
+  .confirmation-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+
+  .back-button {
+    background: linear-gradient(45deg, #6c757d, #495057);
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .back-button:hover {
+    background: linear-gradient(45deg, #5a6268, #3d4449);
+  }
+
+  .finish-button {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .finish-button:hover {
+    background: linear-gradient(45deg, #c92535, #b21e2c);
+  }
+
+  .completion-screen {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    min-height: 100vh;
+    color: white;
+  }
+
+  .completion-screen h1 {
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .test-summary {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    border-radius: 15px;
+    margin: 20px 0;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+  }
+
+  .test-summary h2 {
+    color: #4CAF50;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+  }
+
+  .test-summary p {
+    font-size: 1.2rem;
+    margin: 10px 0;
+    font-weight: 500;
+  }
+
+  .detailed-results {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    border-radius: 15px;
+    margin: 20px 0;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .detailed-results h3 {
+    color: #4CAF50;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .results-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #6c757d;
+    transition: background 0.3s ease;
+  }
+
+  .result-item.correct {
+    border-left-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+  }
+
+  .result-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .task-number {
+    font-weight: 600;
+    color: #4CAF50;
+    min-width: 120px;
+  }
+
+  .answer-text {
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .back-to-menu-button {
+    display: block;
+    margin: 30px auto;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .back-to-menu-button:hover {
+    background: linear-gradient(45deg, #5a67d8, #6b46c1);
+  }
+
+  @media (max-width: 768px) {
+    .confirmation-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .back-button, .finish-button {
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    .result-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 8px;
+    }
+    
+    .task-number {
+      min-width: auto;
+    }
+  }
