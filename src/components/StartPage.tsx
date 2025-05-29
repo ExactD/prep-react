@@ -21,7 +21,7 @@ const StartPage: React.FC = () => {
     try {
       if (isLogin) {
         // Логін
-        const res = await fetch('http://localhost:5400/login', {
+        const res = await fetch('http://localhost:5414/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ const StartPage: React.FC = () => {
           return;
         }
 
-        const res = await fetch('http://localhost:5400/register', {
+        const res = await fetch('http://localhost:5414/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

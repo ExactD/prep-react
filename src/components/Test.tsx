@@ -1,0 +1,869 @@
+import '../index.css';
+import '../endtest.css';
+import { useState, useEffect } from 'react';
+import { MathJaxContext } from 'better-react-mathjax';
+import HelpPage from './HelpPage';
+import SmartText from './SmartText';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion';
+
+async function loadData(condition: any) {
+  let tasks;
+  
+  if (condition === 1) {
+    const module = await import('../data/1805/Task');
+    tasks = module.default;
+  } else if (condition === 2) {
+    const module = await import('../data/2505/Task');
+    tasks = module.default;
+  }
+  
+  return tasks;
+}
+
+async function loadAnsware(condition: any) {
+  let correctAnswers;
+  
+  if (condition === 1) {
+    const module = await import('../data/1805/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 2) {
+    const module = await import('../data/2505/CorrectAnswers');
+    correctAnswers = module.default;
+  }
+  
+  return correctAnswers;
+}
+
+const Test: React.FC = () => {
+  const [correctAnswers, setCorrectAnswers] = useState<any[]>([]);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [screenMode, setScreenMode] = useState<ScreenMode>('test');
+  const [currentSelections, setCurrentSelections] = useState<(number | null)[]>([]);
+  const [finalAnswers, setFinalAnswers] = useState<(number | (number | null)[] | null)[]>([]);
+  const [matchingSelections, setMatchingSelections] = useState<(Array<number | null>)[]>([]);
+  const [inputAnswers, setInputAnswers] = useState<string[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Завантаження завдань при ініціалізації компонента
+  useEffect(() => {
+    const initializeTasks = async () => {
+      try {
+        const getTestID = async () => {
+          const user_id = 8;
+          
+          const res = await fetch('http://localhost:5414/test/get', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id }),
+            credentials: 'include',
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error('Error details:', errorData);
+            throw new Error(`HTTP error! Status: ${res.status}`);
+          }
+
+          const data = await res.json();
+          console.log('Received data:', data);
+
+          if (!data.test_id) {
+            throw new Error('test_id not found in response');
+          }
+
+          return data.test_id;
+        };
+        const testId = await getTestID();
+        const loadedTasks = await loadData(testId);
+        const loadedCorrectAnswers = await loadAnsware(testId);
+        
+        if (loadedTasks) {
+          setTasks(loadedTasks);
+          setCorrectAnswers(loadedCorrectAnswers || []);
+          // Ініціалізуємо стани після завантаження tasks
+          setCurrentSelections(Array(loadedTasks.length).fill(null));
+          setFinalAnswers(Array(loadedTasks.length).fill(null));
+          setMatchingSelections(Array(loadedTasks.length).fill(null).map(() => [null, null, null]));
+          setInputAnswers(Array(loadedTasks.length).fill(''));
+        }
+      } catch (error) {
+        console.error('Помилка завантаження tasks:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeTasks();
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
+  }, [screenMode]);
+
+  // Отримання профілю користувача при завантаженні компонента
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const res = await fetch('http://localhost:5414/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+        if (res.ok) {
+          const profile = await res.json();
+          setUserProfile(profile);
+        } else {
+          console.error('Помилка при отриманні профілю користувача');
+        }
+      } catch (error) {
+        console.error('Помилка при отриманні профілю:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Показуємо індикатор завантаження поки tasks не завантажені
+  if (isLoading || tasks.length === 0) {
+    return (
+      <div className="loading-screen">
+        <p>Завантаження завдань...</p>
+      </div>
+    );
+  }
+
+  const isInputTask = (task: any) => task.type === 'input';
+
+  const handleSelectVariant = (taskIndex: number, variantIndex: number) => {
+    setCurrentSelections(prev => {
+      const updated = [...prev];
+      const newValue = updated[taskIndex] === (variantIndex + 1) ? null : (variantIndex + 1);
+      
+      // Якщо є збережена відповідь і ми змінюємо вибір - видаляємо стару відповідь
+      if (finalAnswers[taskIndex] !== null && newValue !== null) {
+        removeAnswerFromServer(taskIndex);
+      }
+      // Або якщо скидаємо вибір
+      else if (newValue === null && finalAnswers[taskIndex] !== null) {
+        removeAnswerFromServer(taskIndex);
+      }
+      
+      updated[taskIndex] = newValue;
+
+      setFinalAnswers(prevFinal => {
+        const updatedFinal = [...prevFinal];
+        updatedFinal[taskIndex] = null;
+        return updatedFinal;
+      });
+
+      return updated;
+    });
+  };
+
+  const handleMatchingButtonClick = (rowIdx: number, colIdx: number) => {
+    setMatchingSelections(prev => {
+      const updated = [...prev];
+      const currentTaskMatch = [...updated[currentTaskIndex]];
+      const newValue = currentTaskMatch[rowIdx] === (colIdx + 1) ? null : (colIdx + 1);
+      
+      // Якщо є збережена відповідь і ми змінюємо вибір - видаляємо всі збережені відповіді для цього завдання
+      if (finalAnswers[currentTaskIndex] !== null && newValue !== null) {
+        removeAllMatchingAnswers(currentTaskIndex);
+      }
+      // Або якщо скидаємо вибір
+      else if (newValue === null && finalAnswers[currentTaskIndex] !== null) {
+        removeAllMatchingAnswers(currentTaskIndex);
+      }
+      
+      currentTaskMatch[rowIdx] = newValue;
+      updated[currentTaskIndex] = currentTaskMatch;
+
+      setFinalAnswers(prevFinal => {
+        const updatedFinal = [...prevFinal];
+        updatedFinal[currentTaskIndex] = null;
+        return updatedFinal;
+      });
+
+      return updated;
+    });
+  };
+
+  const handleInputChange = (taskIndex: number, value: string) => {
+    setInputAnswers(prev => {
+      const updated = [...prev];
+      
+      // Якщо є збережена відповідь і поле не порожнє - видаляємо стару відповідь
+      if (finalAnswers[taskIndex] !== null) {
+        removeAnswerFromServer(taskIndex);
+      }
+      
+      updated[taskIndex] = value;
+      return updated;
+    });
+
+    // Скидаємо фінальну відповідь
+    setFinalAnswers(prev => {
+      const updated = [...prev];
+      updated[taskIndex] = null;
+      return updated;
+    });
+  };
+
+  const handleSaveAnswer = async () => {
+    if (!userProfile || !userProfile.id) {
+      console.error('User profile not loaded, cannot save answer');
+      return;
+    }
+
+    let updatedFinalAnswers = [...finalAnswers];
+    let valuesToSave = [];
+
+    // Визначаємо значення для збереження в залежності від типу завдання
+    if (currentTaskIndex >= 0 && currentTaskIndex <= 14) {
+      const selected = currentSelections[currentTaskIndex];
+      updatedFinalAnswers[currentTaskIndex] = selected !== undefined ? selected : null;
+      if (selected !== undefined && selected !== null) {
+        valuesToSave.push({ task: currentTaskIndex + 1, value: selected });
+      }
+    } 
+    else if (currentTaskIndex >= 15 && currentTaskIndex <= 17) {
+      const selectedMatches = matchingSelections[currentTaskIndex];
+      const processedMatches = selectedMatches.map(match => match !== null ? match : null);
+      updatedFinalAnswers[currentTaskIndex] = processedMatches;
+      
+      // Додаємо тільки ті елементи, які не є null
+      processedMatches.forEach((match, idx) => {
+        if (match !== null) {
+          valuesToSave.push({
+            task: `${currentTaskIndex + 1}.${idx + 1}`,
+            value: match
+          });
+        }
+      });
+    } 
+    else if (currentTaskIndex >= 18 && currentTaskIndex <= 21) {
+      const input = inputAnswers[currentTaskIndex];
+      const processedInput = input.trim() !== '' ? Number(input) : null;
+      updatedFinalAnswers[currentTaskIndex] = processedInput;
+      
+      if (processedInput !== null && !isNaN(processedInput)) {
+        valuesToSave.push({ task: currentTaskIndex + 1, value: processedInput });
+      }
+    }
+
+    setFinalAnswers(updatedFinalAnswers);
+
+    // Зберігаємо прогрес на бекенд тільки якщо є що зберігати
+    if (valuesToSave.length > 0) {
+      try {
+        for (const item of valuesToSave) {
+          try {
+            // Спочатку пробуємо оновити запис
+            const updateResponse = await fetch('http://localhost:5414/progress/update', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                user_id: userProfile.id,
+                test_id: 1,
+                task: item.task,
+                value: typeof item.value === 'object' ? JSON.stringify(item.value) : item.value
+              })
+            });
+
+            if (!updateResponse.ok && updateResponse.status === 404) {
+              // Якщо запис не знайдено - створюємо новий
+              const progressResponse = await fetch('http://localhost:5414/progress/add', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  user_id: userProfile.id,
+                  test_id: 1,
+                  task: item.task,
+                  value: typeof item.value === 'object' ? JSON.stringify(item.value) : item.value
+                })
+              });
+
+              if (!progressResponse.ok) {
+                console.warn(`Failed to create progress for task ${item.task}:`, progressResponse.status);
+              }
+            } else if (!updateResponse.ok) {
+              console.warn(`Failed to update progress for task ${item.task}:`, updateResponse.status);
+            }
+          } catch (fetchError) {
+            console.warn(`Network error saving task ${item.task}:`);
+          }
+        }
+      } catch (error) {
+        console.warn('General error saving progress:', error);
+      }
+    }
+
+    // Переходимо до наступного завдання або до підтвердження
+    if (currentTaskIndex === tasks.length - 1) {
+      setScreenMode('confirmation');
+    } else {
+      setTimeout(() => {
+        setCurrentTaskIndex(prev => prev + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 0);
+    }
+  };
+
+  const removeAnswerFromServer = async (taskIndex: number, subTaskIndex?: number) => {
+    if (!userProfile) return; // Don't proceed if user profile isn't loaded
+
+    const taskIdentifier = subTaskIndex 
+        ? `${taskIndex + 1}.${subTaskIndex}` 
+        : taskIndex + 1;
+
+    try {
+      const response = await fetch('http://localhost:5414/progress/remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userProfile.id,
+          test_id: 1,
+          task: taskIdentifier, // Adding 1 because tasks are 1-based in the backend
+        })
+      });
+
+      if (!response.ok) {
+        //console.error('Failed to remove answer:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error removing answer:', error);
+    }
+  };
+  
+  const removeAllMatchingAnswers = async (taskIndex: number) => {
+    if (!userProfile || !userProfile.id) {
+      console.warn('User profile not loaded, skipping matching answers removal');
+      return;
+    }
+
+    try {
+      // Видаляємо кожен підпункт окремо (1, 2, 3)
+      const removePromises = [];
+      for (let i = 1; i <= 3; i++) {
+        removePromises.push(removeAnswerFromServer(taskIndex, i));
+      }
+      
+      // Чекаємо завершення всіх операцій видалення
+      await Promise.allSettled(removePromises);
+    } catch (error) {
+      console.warn('Error removing matching answers:', error);
+    }
+  };
+
+  const handleFinishTest = async () => {
+    if (!userProfile) {
+      console.error('Профіль користувача не завантажено');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const profileResponse = await fetch('http://localhost:5414/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!profileResponse.ok) {
+        console.error('Помилка при отриманні профілю користувача');
+        navigate('/');
+        return;
+      }
+
+      const userProfile = await profileResponse.json();
+      const userId = userProfile.id;
+
+      // Отримуємо реальний результат користувача
+      const summary = getAnswerSummary();
+      const userScore = find200ScaleScore(summary.score);
+      const finalScore = typeof userScore === 'number' ? userScore : 0;
+
+      console.log('Відправляємо результати:', {
+        user_id: userId,
+        test_id: 1,
+        score: finalScore,
+        rawScore: summary.score,
+        answers: finalAnswers
+      });
+
+      // Відправка результатів на бекенд
+      const response = await fetch('http://localhost:5414/test/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userId,
+          test_id: 1,
+          score: finalScore,
+          status: 2,
+          old_status: 1,
+          raw_score: summary.score,
+          answers: finalAnswers
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Тест успішно оновлено:', result);
+        console.log('Результати користувача:', finalAnswers);
+        setScreenMode('completion');
+      } else {
+        const errorData = await response.json();
+        console.error('Помилка при оновленні тесту:', errorData);
+        console.error('Статус відповіді:', response.status);
+        // Можна показати повідомлення про помилку користувачу
+        alert(`Помилка при збереженні результатів тесту (${response.status}). Спробуйте ще раз.`);
+      }
+    } catch (error) {
+      console.error('Помилка при відправці результатів:', error);
+      alert('Помилка з\'єднання. Перевірте інтернет-з\'єднання та спробуйте ще раз.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+    // Виправлена функція getAnswerSummary
+  const getAnswerSummary = () => {
+    let answered = 0;
+    let score = 0;   // загальна кількість балів (максимум 32)
+
+    finalAnswers.forEach((answer, index) => {
+      const task = tasks[index];
+      const correctAnswer = correctAnswers[index];
+
+      // Перевірка чи відповів користувач
+      const isAnswered = task.type === 'matching'
+        ? Array.isArray(answer) && answer.some(item => item !== null)
+        : answer !== null && answer !== undefined;
+
+      if (isAnswered) {
+        answered++;
+      }
+
+      // Оцінюємо всі завдання незалежно від того, чи відповів користувач
+      if (task.type === 'matching' && Array.isArray(correctAnswer)) {
+        if (Array.isArray(answer)) {
+          // Завдання на відповідність: скільки співпало, стільки і балів (0-3)
+          let matched = 0;
+          for (let i = 0; i < correctAnswer.length; i++) {
+            if (answer[i] === correctAnswer[i]) {
+              matched++;
+            }
+          }
+          score += matched; // Додаємо кількість правильних відповідностей
+        }
+        // Якщо не відповів - 0 балів (нічого не додаємо)
+
+      } else if (task.type === 'input') {
+        // Завдання відкритої форми: 2 бали за правильну відповідь, 0 за неправильну
+        if (answer !== null && answer !== undefined && Number(answer) === Number(correctAnswer)) {
+          score += 2;
+        }
+        // Якщо неправильно або не відповів - 0 балів
+
+      } else {
+        // Тестові завдання: 1 бал за правильну відповідь, 0 за неправильну
+        if (answer === correctAnswer) {
+          score += 1;
+        }
+        // Якщо неправильно або не відповів - 0 балів
+      }
+    });
+
+    return { answered, score, total: tasks.length, maxScore: 32 };
+  };
+
+  // Виправлена функція isAnswerCorrect
+  const isAnswerCorrect = (userAnswer: any, taskIndex: number) => {
+    if (correctAnswers[taskIndex] === undefined || correctAnswers[taskIndex] === null) return false;
+    
+    const correctAnswer = correctAnswers[taskIndex];
+    const task = tasks[taskIndex];
+
+    if (task.type === 'matching') {
+      if (!Array.isArray(userAnswer) || !Array.isArray(correctAnswer)) return false;
+      return userAnswer.every((answer, idx) => answer === correctAnswer[idx]);
+    } else if (task.type === 'input') {
+      return Number(userAnswer) === Number(correctAnswer);
+    } else {
+      // Для тестових завдань використовуємо строге порівняння
+      return userAnswer === correctAnswer;
+    }
+  };
+
+  const formatAnswer = (answer: any, taskIndex: number) => {
+    const task = tasks[taskIndex];
+    
+    if (task.type === 'matching') {
+      if (Array.isArray(answer)) {
+        return answer.map((match, idx) => 
+          match !== null ? `${idx + 1} → ${['А', 'Б', 'В', 'Г', 'Д'][match - 1]}` : `${idx + 1} → -`
+        ).join(', ');
+      }
+      return 'Не відповів';
+    } else if (task.type === 'input') {
+      return answer !== null ? answer.toString() : 'Не відповів';
+    } else {
+      return answer !== null ? ['А', 'Б', 'В', 'Г', 'Д'][answer - 1] : 'Не відповів';
+    }
+  };
+
+  // Знаходимо бал за 200-бальною шкалою на основі таблиці
+  const find200ScaleScore = (correct: number) => {
+    const scoreMap: Record<number, number> = {
+        5: 100, 6: 108, 7: 115, 8: 123, 9: 131,
+        10: 134, 11: 137, 12: 140, 13: 143, 14: 145,
+        15: 147, 16: 148, 17: 149, 18: 150, 19: 151,
+        20: 152, 21: 155, 22: 159, 23: 163, 24: 167,
+        25: 170, 26: 173, 27: 176, 28: 180, 29: 184,
+        30: 189, 31: 194, 32: 200
+    };
+    
+    // Якщо менше 5 балів - "Не склав"
+    if (correct < 5) return 'Не склав';
+    
+    // Якщо значення є в таблиці - повертаємо його
+    if (scoreMap[correct] !== undefined) return scoreMap[correct];
+    
+    // Якщо більше максимального - повертаємо 200
+    if (correct > 32) return 200;
+    
+    // Знаходимо найближчі значення для інтерполяції
+    let lower = 5, higher = 32;
+    for (let i = 5; i <= 32; i++) {
+        if (i < correct) lower = i;
+        if (i > correct) {
+            higher = i;
+            break;
+        }
+    }
+    
+    // Інтерполяція між найближчими значеннями
+    const lowerScore = scoreMap[lower];
+    const higherScore = scoreMap[higher];
+    return Math.round(lowerScore + (correct - lower) * (higherScore - lowerScore) / (higher - lower));
+  };
+
+  const currentTask = tasks[currentTaskIndex];
+  const isMatchingType = currentTask && currentTask.type === 'matching';
+  const isInputType = currentTask && isInputTask(currentTask);
+
+  if (screenMode === 'confirmation') {
+    const summary = getAnswerSummary();
+    
+    return (
+      <MathJaxContext>
+        <div className="confirmation-screen">
+          <div className="confirmation-content">
+            <h1>Підтвердження завершення тесту</h1>
+            
+            <div className="test-preview">
+              <h3>Попередній огляд результатів:</h3>
+              <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
+              <p><strong>Пропущено:</strong> {summary.total - summary.answered}</p>
+            </div>
+
+            <div className="warning-message">
+              <p>⚠️ Після підтвердження ви не зможете змінити свої відповіді!</p>
+              <p>Переконайтеся, що ви відповіли на всі потрібні завдання.</p>
+            </div>
+
+            <div className="confirmation-buttons">
+              <button 
+                onClick={() => setScreenMode('test')}
+                className="back-button"
+                disabled={isSubmitting}
+              >
+                Повернутися до тесту
+              </button>
+              <button 
+                onClick={handleFinishTest}
+                className="finish-button"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Збереження...' : 'Завершити тест'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </MathJaxContext>
+    );
+  }
+
+  if (screenMode === 'completion') {
+    const summary = getAnswerSummary();
+    const correctCount = summary.score;
+    // Виправлено розрахунок відсотку - від максимальної кількості балів
+    const percentage = Math.round((summary.score / summary.maxScore) * 100);
+    const score200 = find200ScaleScore(correctCount);
+    
+    return (
+      <MathJaxContext>
+        <div className="completion-screen">
+          <h1>Тест завершено!</h1>
+          
+          <div className="test-summary">
+            <h2>Підсумок виконання:</h2>
+            <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
+            <p><strong>Тестових балів:</strong> {correctCount}/32</p>
+            <p><strong>Відсоток правильних:</strong> {percentage}%</p>
+            <p className="score-200"><strong>Бал за шкалою 100-200:</strong> <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{score200}</span></p>
+          </div>
+
+          <div className="detailed-results">
+            <h3>Детальні результати:</h3>
+            <div className="results-list">
+              {finalAnswers.map((answer, index) => {
+                const isCorrect = isAnswerCorrect(answer, index);
+                return (
+                  <div key={index} className={`result-item ${isCorrect ? 'correct' : ''}`}>
+                    <span className="task-number">Завдання {index + 1}:</span>
+                    <span className="answer-text">{formatAnswer(answer, index)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="completion-buttons">
+            <button 
+              onClick={() => navigate(-1)}
+              className="back-to-menu-button"
+            >
+              Повернутися до вибору тестів
+            </button>
+          </div>
+        </div>
+      </MathJaxContext>
+    );
+  }
+
+
+  return (
+    <MathJaxContext>
+      <div>
+        {screenMode === 'test' ? (
+          <>
+            <div className="buttons-row">
+              {tasks.map((task, taskIdx) => {
+                const isCurrent = currentTaskIndex === taskIdx;
+                const savedState = finalAnswers[taskIdx];
+                const isMatching = task.type === 'matching';
+                const isInput = task.type === 'input';
+
+                let buttonClass = 'button-item';
+                if (isCurrent) buttonClass += ' active';
+
+                if (isMatching) {
+                  if (Array.isArray(savedState)) {
+                    const allSelected = savedState.every(item => item !== null);
+                    const someSelected = savedState.some(item => item !== null);
+                
+                    if (allSelected) {
+                      buttonClass += ' saved'; // всі вибрані
+                    } else if (someSelected) {
+                      buttonClass += ' partial'; // частково вибрані
+                    }
+                  }
+                } else if (isInput) {
+                  if (savedState !== null) {
+                    buttonClass += ' saved';
+                  }
+                } else {
+                  if (savedState !== null) {
+                    buttonClass += ' saved';
+                  }
+                }
+
+                return (
+                  <button
+                    key={taskIdx}
+                    className={buttonClass}
+                    onClick={() => setCurrentTaskIndex(taskIdx)}
+                  >
+                    {taskIdx + 1}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="button-content">
+              <SmartText text={currentTask.text} className="main-text" />
+              {currentTask.image && (
+                <img src={currentTask.image} alt="Завдання" className="button-image" />
+              )}
+            </div>
+
+            {/* Завдання */}
+            {isMatchingType ? (
+              <>
+                <div className="matching-task">
+                  {/* Сітка завдання */}
+                  <div className="matching-grid">
+                    <div className="left-column">
+                      {currentTask.leftTitle && (
+                        <div className="column-header">
+                          <SmartText text={currentTask.leftTitle} />
+                        </div>
+                      )}
+                      {currentTask.leftOptions?.map((option: any, idx: number) => (
+                        <div key={idx} className="left-item">
+                          <strong>{idx + 1}.</strong> <SmartText text={option.text} />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="right-column">
+                      {currentTask.rightTitle && (
+                        <div className="column-header">
+                          <SmartText text={currentTask.rightTitle} />
+                        </div>
+                      )}
+                      {currentTask.variants?.map((variant: any, idx: number) => (
+                        <div key={idx} className="variant-item">
+                          <span className="variant-label">{['А', 'Б', 'В', 'Г', 'Д'][idx]}:</span>
+                          <SmartText text={variant.text} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Кнопки відповідностей */}
+                <div className="matching-button-grid">
+                  <div className="header-row">
+                    <div className="corner-cell" />
+                    {['А', 'Б', 'В', 'Г', 'Д'].map((label, idx) => (
+                      <div key={idx} className="column-label">{label}</div>
+                    ))}
+                  </div>
+
+                  {[0, 1, 2].map(rowIdx => (
+                    <div key={rowIdx} className="matching-row">
+                      <div className="row-label">{rowIdx + 1}</div>
+                      {[0, 1, 2, 3, 4].map(colIdx => {
+                        // Перевіряємо чи вибраний елемент, враховуючи нову індексацію
+                        const isActive = matchingSelections[currentTaskIndex][rowIdx] === (colIdx + 1);
+                        return (
+                          <button
+                            key={colIdx}
+                            className={`matching-button ${isActive ? 'active' : ''}`}
+                            onClick={() => handleMatchingButtonClick(rowIdx, colIdx)}
+                          >
+                            {['А', 'Б', 'В', 'Г', 'Д'][colIdx]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : isInputType ? (
+              <>
+                <div className="input-answer">
+                  <input
+                    type="text"
+                    value={inputAnswers[currentTaskIndex]}
+                    onChange={(e) => handleInputChange(currentTaskIndex, e.target.value)}
+                    placeholder="Введіть відповідь"
+                    className="input-field"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="variant-list">
+                  {currentTask.variants?.map((variant: any, idx: number) => (
+                    <div key={idx} className="variant-item">
+                      <span className="variant-label">{['А', 'Б', 'В', 'Г', 'Д'][idx]}:</span>
+                      <SmartText text={variant.text} />
+                      {'image' in variant && variant.image && (
+                        <img src={variant.image} alt={`Варіант ${idx + 1}`} className="variant-image" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="variant-buttons">
+                  {['А', 'Б', 'В', 'Г', 'Д'].map((label, idx) => (
+                    <button
+                      key={idx}
+                      className={`variant-button ${currentSelections[currentTaskIndex] === (idx + 1) ? 'active' : ''}`}
+                      onClick={() => handleSelectVariant(currentTaskIndex, idx)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="save-button">
+              <button
+                onClick={handleSaveAnswer}
+                className={`save-task-button ${currentTaskIndex === tasks.length - 1 ? 'finish-button' : ''}`}
+                style={currentTaskIndex === tasks.length - 1 ? { backgroundColor: 'red', color: 'white' } : {}}
+              >
+                {currentTaskIndex === tasks.length - 1
+                  ? 'Завершити тест'
+                  : (
+                    (() => {
+                      if (currentTask.type === 'matching') {
+                        const selection = matchingSelections[currentTaskIndex];
+                        const hasAnySelection = selection.some(item => item !== null);
+                        return hasAnySelection ? 'Зберегти' : 'Пропустити';
+                      } else if (currentTask.type === 'input') {
+                        const input = inputAnswers[currentTaskIndex];
+                        return input.trim() !== '' ? 'Зберегти' : 'Пропустити';
+                      } else {
+                        const selection = currentSelections[currentTaskIndex];
+                        return selection !== null ? 'Зберегти' : 'Пропустити';
+                      }
+                    })()
+                  )
+                }
+              </button>
+            </div>
+
+            {/* Модальне вікно підтвердження видалено - тепер окрема стадія */}
+
+            <button onClick={() => setScreenMode('help')} className="help-button">
+              Довідка
+            </button>
+          </>
+        ) : (
+          <HelpPage onBack={() => setScreenMode('test')} />
+        )}
+      </div>
+    </MathJaxContext>
+  );
+};
+
+export default Test;

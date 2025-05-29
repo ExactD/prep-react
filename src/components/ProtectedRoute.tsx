@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('http://localhost:5400/profile', {
+        const res = await fetch('http://localhost:5414/profile', {
           method: 'GET',
           credentials: 'include',
         });

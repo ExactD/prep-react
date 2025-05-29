@@ -4,25 +4,69 @@ import { useNavigate } from 'react-router-dom';
 const TestSelection: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleSelectTest = (testId: string) => {
-    switch (testId) {
-      case 'Test1805':
-        navigate('/test/1805');
-        break;
-      case 'Test2024':
-        navigate('/test/2024');
-        break;
-      case 'BasicTest':
-        navigate('/test/basic');
-        break;
-      default:
-        navigate('/test/1805');
+  const handleSelectTest = async (testId: number, stringId: string) => {
+    try {
+      // Спочатку отримуємо профіль користувача, щоб дізнатися user_id
+      const profileResponse = await fetch('http://localhost:5414/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!profileResponse.ok) {
+        console.error('Помилка при отриманні профілю користувача');
+        navigate('/');
+        return;
+      }
+
+      const userProfile = await profileResponse.json();
+      const userId = userProfile.id;
+
+      // Відправляємо запит на створення тесту з числовим ID
+      const response = await fetch('http://localhost:5414/test/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userId,
+          test_id: testId, // числовий ID
+          status: 1
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Помилка при створенні тесту');
+      }
+
+      const data = await response.json();
+      console.log('Тест створено:', data);
+
+      // Після успішного створення тесту переходимо на сторінку тесту за строковим ID
+      switch (stringId) {
+        case 'Test1805':
+          navigate('/test/math');
+          break;
+        case 'Test2024':
+          navigate('/test/math');
+          break;
+        case 'BasicTest':
+          navigate('/test/math');
+          break;
+        default:
+          navigate('/test/math');
+      }
+    } catch (error) {
+      console.error('Помилка:', error);
+      // Можете показати повідомлення про помилку користувачу
+      alert('Помилка при створенні тесту. Спробуйте ще раз.');
     }
   };
 
   const tests = [
     {
-      id: 'Test1805',
+      id: 1, // числовий ID для бази даних
+      stringId: 'Test1805', // строковий ID для роутингу
       name: 'Тест 18.05.2024',
       description: 'Основний тест знань з історії',
       difficulty: 'easy',
@@ -31,7 +75,8 @@ const TestSelection: React.FC = () => {
       time: '60 хв'
     },
     {
-      id: 'Test2024',
+      id: 2,
+      stringId: 'Test2024',
       name: 'Тест 2024',
       description: 'Сучасні знання та технології',
       difficulty: 'hard',
@@ -40,7 +85,8 @@ const TestSelection: React.FC = () => {
       time: '45 хв'
     },
     {
-      id: 'BasicTest',
+      id: 3,
+      stringId: 'BasicTest',
       name: 'Базовий тест',
       description: 'Простий тест для початківців',
       difficulty: 'medium',
@@ -65,7 +111,7 @@ const TestSelection: React.FC = () => {
             <div
               key={test.id}
               className="test-card"
-              onClick={() => handleSelectTest(test.id)}
+              onClick={() => handleSelectTest(test.id, test.stringId)}
             >
               <div className="test-card-header">
                 <h3 className="test-name">{test.name}</h3>

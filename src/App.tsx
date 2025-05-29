@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import StartPage from './components/StartPage';
 import TestSelection from './components/TestSelection';
-import Test1805 from './components/Test1805';
+import Test from './components/Test';
 import './startsstyle.css';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -88,11 +88,11 @@ class App extends Component<{}, AppState> {
             />
             
             <Route 
-              path="/test/1805" 
+              path="/test/math" 
               element={
                 <this.PageWrapper>
                   <ProtectedRoute>
-                    <Test1805 />
+                    <Test />
                   </ProtectedRoute>
                 </this.PageWrapper>
               } 

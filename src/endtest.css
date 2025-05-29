@@ -31,9 +31,11 @@
   }
 
   .test-preview h3 {
-    color: #4CAF50;
-    margin-bottom: 15px;
-  }
+    color: #FFD700; /* Яскраво-жовтий колір для видимості */
+    margin-bottom: 15px; /* Відступ знизу */
+    font-weight: bold; /* Жирний шрифт */
+    font-size: 1.3rem; /* Розмір шрифту */
+}
 
   .test-preview p {
     margin: 8px 0;
@@ -121,10 +123,11 @@
   }
 
   .test-summary h2 {
-    color: #4CAF50;
-    margin-bottom: 20px;
-    font-size: 1.8rem;
-  }
+    color: #FF6B35; /* Яскраво-помаранчевий колір */
+    margin-bottom: 20px; /* Відступ знизу */
+    font-size: 1.8rem; /* Розмір шрифту */
+    font-weight: bold; /* Жирний шрифт */
+}
 
   .test-summary p {
     font-size: 1.2rem;
@@ -142,11 +145,12 @@
   }
 
   .detailed-results h3 {
-    color: #4CAF50;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    text-align: center;
-  }
+    color: #FF1744; /* Яскраво-червоний колір */
+    margin-bottom: 20px; /* Відступ знизу */
+    font-size: 1.5rem; /* Розмір шрифту */
+    text-align: center; /* Центрування тексту */
+    font-weight: bold; /* Жирний шрифт */
+}
 
   .results-list {
     max-height: 400px;
@@ -157,36 +161,44 @@
   }
 
   .result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    margin: 8px 0;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    border-left: 4px solid #6c757d;
-    transition: background 0.3s ease;
-  }
+    display: flex; /* Flexbox для розташування елементів в ряд */
+    justify-content: space-between; /* Розподіляє елементи по краях */
+    align-items: center; /* Вертикальне вирівнювання по центру */
+    padding: 12px 15px; /* Внутрішні відступи */
+    margin: 8px 0; /* Зовнішні відступи зверху і знизу */
+    border-radius: 8px; /* Закруглені кути */
+    border-left: 4px solid #a50000a2; /* Червоний лівий бордер для неправильних */
+    background: #FF1744; /* Червоний фон для неправильних відповідей */
+    color: white; /* Білий текст */
+    font-weight: 500; /* Напівжирний шрифт */
+}
 
-  .result-item.correct {
-    border-left-color: #4CAF50;
-    background: rgba(76, 175, 80, 0.1);
-  }
+/* Стилі для правильних відповідей */
+.result-item.correct {
+    border-left: 4px solid #4CAF50; /* Зелений лівий бордер */
+    background: #4CAF50; /* Зелений фон для правильних відповідей */
+    color: white; /* Білий текст */
+}
 
   .result-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .result-item.correct:hover {
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
   }
 
   .task-number {
     font-weight: 600;
-    color: #4CAF50;
+    color: #ffffff;
     min-width: 120px;
   }
 
   .answer-text {
-    font-weight: 500;
-    text-align: right;
-  }
+    font-weight: 600; /* Напівжирний шрифт */
+    text-align: right; /* Вирівнювання тексту по правому краю */
+    color: white; /* Білий колір тексту */
+}
 
   .back-to-menu-button {
     display: block;
@@ -225,6 +237,17 @@
     }
     
     .task-number {
-      min-width: auto;
-    }
-  }
+    font-weight: 700; /* Жирний шрифт */
+    color: white; /* Білий колір тексту */
+    min-width: 120px; /* Мінімальна ширина для рівномірності */
+}
+}
+
+.score-200 {
+    margin-top: 15px;
+    font-size: 18px;
+}
+
+.score-200 span {
+    color: #2c3e50;
+}
