@@ -1,0 +1,110 @@
+/* Стилі для блоку відновлення активного тесту */
+.active-test-section {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1.5rem;
+}
+
+.active-test-header {
+  color: #28a745;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.active-test-card {
+  display: flex;
+  align-items: center;
+  background: #f0f9f0;
+  border: 2px solid #28a745;
+  border-radius: 8px;
+  padding: 1.2rem;
+  cursor: pointer;
+}
+
+.active-test-card:hover {
+  background: #e8f5e8;
+}
+
+.active-test-icon {
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.resume-icon {
+  background: #28a745;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.active-test-content {
+  flex: 1;
+}
+
+.active-test-info {
+  margin-bottom: 0.5rem;
+}
+
+.active-test-name {
+  color: #155724;
+  font-size: 1.2rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+}
+
+.active-test-description {
+  color: #155724;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.active-test-progress {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #155724;
+}
+
+.progress-text, 
+.time-remaining {
+  background: rgba(40, 167, 69, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.active-test-action {
+  margin-left: 1rem;
+}
+
+.continue-text {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+  .active-test-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .active-test-icon {
+    margin-right: 0;
+  }
+
+  .active-test-action {
+    margin-left: 0;
+  }
+
+  .active-test-progress {
+    justify-content: center;
+  }
+}

@@ -1,13 +1,30 @@
-import '../index.css';
 import '../endtest.css';
-import { useState, useEffect } from 'react';
+import '../index.css';
+import { useState, useEffect, useRef } from 'react';
 import { MathJaxContext } from 'better-react-mathjax';
 import HelpPage from './HelpPage';
 import SmartText from './SmartText';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion';
+type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion' | 'review';
+const API_BASE_URL = 'http://localhost:5415';
+
+interface BackendResponse {
+  message: string;
+  records: {
+    user_id: number;
+    test_id: number;
+    task: number; // індекс завдання (0-21)
+    value: number | number[] | null; // значення завдання
+  }[];
+  count: number;
+}
+
+interface ErrorResponse {
+  error: string;
+  details?: string;
+}
 
 async function loadData(condition: any) {
   let tasks;
@@ -37,59 +54,71 @@ async function loadAnsware(condition: any) {
   return correctAnswers;
 }
 
+const getTestID = async (userId: number, navigate: Function) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/test/get`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId }),
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error('Error details:', errorData);
+      localStorage.removeItem('testCompleted');
+      navigate('/tests'); // Перенаправляємо на попередню сторінку
+      throw new Error(`HTTP error! Status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log('Received data:', data);
+
+    if (!data.test_id) {
+      throw new Error('test_id not found in response');
+    }
+
+    return data.test_id;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const Test: React.FC = () => {
   const [correctAnswers, setCorrectAnswers] = useState<any[]>([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [screenMode, setScreenMode] = useState<ScreenMode>('test');
-  const [currentSelections, setCurrentSelections] = useState<(number | null)[]>([]);
-  const [finalAnswers, setFinalAnswers] = useState<(number | (number | null)[] | null)[]>([]);
-  const [matchingSelections, setMatchingSelections] = useState<(Array<number | null>)[]>([]);
-  const [inputAnswers, setInputAnswers] = useState<string[]>([]);
+  const [currentSelections, setCurrentSelections] = useState<(number | null)[]>(Array(22).fill(null));
+  const [finalAnswers, setFinalAnswers] = useState<(number | (number | null)[] | null)[]>(Array(22).fill(null));
+  const [matchingSelections, setMatchingSelections] = useState<(number | null)[][]>(
+    Array(3).fill(null).map(() => Array(3).fill(null))
+  );
+  const [inputAnswers, setInputAnswers] = useState<string[]>(Array(22).fill(''));
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [reviewTaskIndex, setReviewTaskIndex] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  // Додаємо useRef для відстеження, чи вже був викликаний saveAndDisplayAnswers
+  const hasLoadedAnswers = useRef(false);
 
   // Завантаження завдань при ініціалізації компонента
   useEffect(() => {
     const initializeTasks = async () => {
       try {
-        const getTestID = async () => {
-          const user_id = 8;
-          
-          const res = await fetch('http://localhost:5414/test/get', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user_id }),
-            credentials: 'include',
-          });
-
-          if (!res.ok) {
-            const errorData = await res.json();
-            console.error('Error details:', errorData);
-            throw new Error(`HTTP error! Status: ${res.status}`);
-          }
-
-          const data = await res.json();
-          console.log('Received data:', data);
-
-          if (!data.test_id) {
-            throw new Error('test_id not found in response');
-          }
-
-          return data.test_id;
-        };
-        const testId = await getTestID();
+        if (!userProfile) return; // Чекаємо, поки завантажиться профіль
+        
+        const testId = await getTestID(userProfile.id, navigate);
         const loadedTasks = await loadData(testId);
         const loadedCorrectAnswers = await loadAnsware(testId);
         
         if (loadedTasks) {
           setTasks(loadedTasks);
           setCorrectAnswers(loadedCorrectAnswers || []);
-          // Ініціалізуємо стани після завантаження tasks
           setCurrentSelections(Array(loadedTasks.length).fill(null));
           setFinalAnswers(Array(loadedTasks.length).fill(null));
           setMatchingSelections(Array(loadedTasks.length).fill(null).map(() => [null, null, null]));
@@ -102,8 +131,10 @@ const Test: React.FC = () => {
       }
     };
 
-    initializeTasks();
-  }, []);
+    if (userProfile) {
+      initializeTasks();
+    }
+  }, [userProfile]); // Додаємо userProfile в залежності
 
   useEffect(() => {
     setTimeout(() => {
@@ -115,7 +146,7 @@ const Test: React.FC = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const res = await fetch('http://localhost:5414/profile', {
+        const res = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -134,6 +165,23 @@ const Test: React.FC = () => {
     fetchUserProfile();
   }, []);
 
+  // Ефект для завантаження відповідей користувача
+  useEffect(() => {
+    if (!isLoading && tasks.length > 0 && userProfile?.id && !hasLoadedAnswers.current) {
+      const loadUserAnswers = async () => {
+        try {
+          const answers = await getUserTestData(userProfile.id);
+          await saveAndDisplayAnswers(answers);
+          hasLoadedAnswers.current = true;
+        } catch (error) {
+          console.error('Помилка при завантаженні відповідей:', error);
+        }
+      };
+
+      loadUserAnswers();
+    }
+  }, [isLoading, tasks, userProfile]); // Залежності ефекту
+
   // Показуємо індикатор завантаження поки tasks не завантажені
   if (isLoading || tasks.length === 0) {
     return (
@@ -143,7 +191,183 @@ const Test: React.FC = () => {
     );
   }
 
+  if (isLoading || tasks.length === 0) {
+    return (
+      <div className="loading-screen">
+        <p>Завантаження завдань...</p>
+      </div>
+    );
+  }
+
   const isInputTask = (task: any) => task.type === 'input';
+    const handleTaskClick = (taskIndex: number) => {
+    setReviewTaskIndex(taskIndex);
+    setScreenMode('review');
+  };
+
+  const saveAndDisplayAnswers = async (answersArray: (number | number[] | null)[]) => {
+    if (!userProfile?.id) {
+      console.error('User profile not loaded, cannot save answers');
+      return;
+    }
+
+    try {
+      // 1. Ініціалізація станів з правильними розмірами
+      const tasksCount = tasks.length;
+      
+      // 2. Створення нових станів на основі поточних
+      const newCurrentSelections = currentSelections ? [...currentSelections] : Array(tasksCount).fill(null);
+      const newFinalAnswers = finalAnswers ? [...finalAnswers] : Array(tasksCount).fill(null);
+      const newInputAnswers = inputAnswers ? [...inputAnswers] : Array(tasksCount).fill('');
+      
+      // 3. Ініціалізуємо matchingSelections для всіх завдань на відповідність
+      const newMatchingSelections = [...matchingSelections];
+      
+      // Знаходимо всі завдання на відповідність та ініціалізуємо їх
+      tasks.forEach((task, index) => {
+        if (task.type === 'matching') {
+          if (!newMatchingSelections[index]) {
+            newMatchingSelections[index] = Array(3).fill(null);
+          }
+        }
+      });
+
+      // 4. Безпечна обробка відповідей
+      answersArray.forEach((answer, taskIndex) => {
+        try {
+          if (answer === null || answer === undefined) return;
+          if (taskIndex >= tasksCount) return; // Захист від виходу за межі
+
+          const currentTask = tasks[taskIndex];
+          if (!currentTask) return;
+
+          // Завдання на відповідність
+          if (currentTask.type === 'matching') {
+            if (!newMatchingSelections[taskIndex]) {
+              newMatchingSelections[taskIndex] = Array(3).fill(null);
+            }
+
+            if (Array.isArray(answer)) {
+              // Нормалізуємо значення (переконуємось, що це числа або null)
+              newMatchingSelections[taskIndex] = answer.map(val => 
+                val !== null && val !== undefined ? Number(val) : null
+              ).slice(0, 3); // Обмежуємо до 3 елементів
+              
+              newFinalAnswers[taskIndex] = [...newMatchingSelections[taskIndex]];
+            }
+          }
+          // Текстові відповіді (input завдання)
+          else if (currentTask.type === 'input') {
+            newInputAnswers[taskIndex] = String(answer ?? '');
+            newFinalAnswers[taskIndex] = Number(answer) || null;
+          }
+          // Звичайні питання (single choice)
+          else {
+            newCurrentSelections[taskIndex] = Number(answer) || null;
+            newFinalAnswers[taskIndex] = Number(answer) || null;
+          }
+        } catch (error) {
+          console.error(`Error processing task ${taskIndex}:`, error);
+        }
+      });
+
+      // 5. Оновлення станів
+      setCurrentSelections(newCurrentSelections);
+      setFinalAnswers(newFinalAnswers);
+      setMatchingSelections(newMatchingSelections);
+      setInputAnswers(newInputAnswers);
+
+      console.log('Successfully loaded answers:', {
+        currentSelections: newCurrentSelections,
+        matchingSelections: newMatchingSelections,
+        inputAnswers: newInputAnswers,
+        tasksTypes: tasks.map(t => t.type)
+      });
+    } catch (error) {
+      console.error('Failed to load answers:', error);
+    }
+  };
+
+  async function getUserTestData(userId: number): Promise<(number | number[] | null)[]> {
+    try {
+      // Запит до бекенду для отримання даних
+      const response = await fetch(`${API_BASE_URL}/progress/get`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userId
+        })
+      });
+
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data: BackendResponse = await response.json();
+      
+      // Якщо записів немає, повертаємо масив з null
+      if (!data.records || data.records.length === 0) {
+        return Array(tasks.length).fill(null);
+      }
+
+      // Створюємо порожній масив на кількість завдань
+      const resultArray: (number | number[] | null)[] = Array(tasks.length).fill(null);
+      
+      // Ініціалізуємо масиви для завдань на відповідність
+      tasks.forEach((task, index) => {
+        if (task.type === 'matching') {
+          resultArray[index] = Array(3).fill(null);
+        }
+      });
+      
+      // Обробляємо кожен запис з бази даних
+      data.records.forEach(record => {
+        const taskId = record.task.toString();
+        const value = Number(record.value);
+        
+        // Check if taskId contains a dot (for matching questions)
+        if (taskId.indexOf('.') > -1) {
+          // Matching questions (e.g., "16.1")
+          const parts = taskId.split('.');
+          const mainTask = parseInt(parts[0], 10);
+          const subTask = parseInt(parts[1], 10);
+          const arrayIndex = mainTask - 1; // Convert to 0-based
+
+          // Перевіряємо чи це завдання на відповідність
+          if (arrayIndex >= 0 && arrayIndex < tasks.length && tasks[arrayIndex]?.type === 'matching') {
+            // Initialize array if not already
+            if (!Array.isArray(resultArray[arrayIndex])) {
+              resultArray[arrayIndex] = Array(3).fill(null);
+            }
+            
+            // Update the specific sub-task
+            if (Array.isArray(resultArray[arrayIndex])) {
+              const taskArray = resultArray[arrayIndex] as (number | null)[];
+              if (subTask >= 1 && subTask <= 3) { // Виправлено: до 3, а не 4
+                taskArray[subTask - 1] = value;
+              }
+            }
+          }
+        } else {
+          // Single choice or input questions
+          const arrayIndex = parseInt(taskId, 10) - 1; // Convert to 0-based
+          if (arrayIndex >= 0 && arrayIndex < tasks.length) {
+            resultArray[arrayIndex] = value;
+          }
+        }
+      });
+      
+      return resultArray;
+      
+    } catch (error) {
+      console.error('Помилка при отриманні даних:', error instanceof Error ? error.message : error);
+      return Array(tasks.length).fill(null);
+    }
+  }
 
   const handleSelectVariant = (taskIndex: number, variantIndex: number) => {
     setCurrentSelections(prev => {
@@ -270,7 +494,7 @@ const Test: React.FC = () => {
         for (const item of valuesToSave) {
           try {
             // Спочатку пробуємо оновити запис
-            const updateResponse = await fetch('http://localhost:5414/progress/update', {
+            const updateResponse = await fetch(`${API_BASE_URL}/progress/update`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json'
@@ -278,7 +502,7 @@ const Test: React.FC = () => {
               credentials: 'include',
               body: JSON.stringify({
                 user_id: userProfile.id,
-                test_id: 1,
+                test_id: await getTestID(userProfile.id, navigate),
                 task: item.task,
                 value: typeof item.value === 'object' ? JSON.stringify(item.value) : item.value
               })
@@ -286,7 +510,7 @@ const Test: React.FC = () => {
 
             if (!updateResponse.ok && updateResponse.status === 404) {
               // Якщо запис не знайдено - створюємо новий
-              const progressResponse = await fetch('http://localhost:5414/progress/add', {
+              const progressResponse = await fetch(`${API_BASE_URL}/progress/add`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
@@ -294,7 +518,7 @@ const Test: React.FC = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                   user_id: userProfile.id,
-                  test_id: 1,
+                  test_id: await getTestID(userProfile.id, navigate),
                   task: item.task,
                   value: typeof item.value === 'object' ? JSON.stringify(item.value) : item.value
                 })
@@ -334,7 +558,7 @@ const Test: React.FC = () => {
         : taskIndex + 1;
 
     try {
-      const response = await fetch('http://localhost:5414/progress/remove', {
+      const response = await fetch(`${API_BASE_URL}/progress/remove`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -384,14 +608,14 @@ const Test: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const profileResponse = await fetch('http://localhost:5414/profile', {
+      const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
       });
 
       if (!profileResponse.ok) {
         console.error('Помилка при отриманні профілю користувача');
-        navigate('/');
+        handleBackToMenu();
         return;
       }
 
@@ -412,7 +636,7 @@ const Test: React.FC = () => {
       });
 
       // Відправка результатів на бекенд
-      const response = await fetch('http://localhost:5414/test/update', {
+      const response = await fetch(`${API_BASE_URL}/test/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -571,6 +795,11 @@ const Test: React.FC = () => {
     return Math.round(lowerScore + (correct - lower) * (higherScore - lowerScore) / (higher - lower));
   };
 
+  const handleBackToMenu = () => {
+    localStorage.removeItem('testCompleted');
+    navigate(-1);
+  };
+
   const currentTask = tasks[currentTaskIndex];
   const isMatchingType = currentTask && currentTask.type === 'matching';
   const isInputType = currentTask && isInputTask(currentTask);
@@ -623,47 +852,230 @@ const Test: React.FC = () => {
     // Виправлено розрахунок відсотку - від максимальної кількості балів
     const percentage = Math.round((summary.score / summary.maxScore) * 100);
     const score200 = find200ScaleScore(correctCount);
-    
+
     return (
       <MathJaxContext>
-        <div className="completion-screen">
-          <h1>Тест завершено!</h1>
-          
-          <div className="test-summary">
-            <h2>Підсумок виконання:</h2>
-            <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
-            <p><strong>Тестових балів:</strong> {correctCount}/32</p>
-            <p><strong>Відсоток правильних:</strong> {percentage}%</p>
-            <p className="score-200"><strong>Бал за шкалою 100-200:</strong> <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{score200}</span></p>
-          </div>
+          <div className="completion-screen">
+              <h1>Тест завершено!</h1>
+              
+              <div className="test-summary">
+                  <h2>Підсумок виконання:</h2>
+                  <p><strong>Відповіли:</strong> {summary.answered}/{summary.total}</p>
+                  <p><strong>Тестових балів:</strong> {correctCount}/32</p>
+                  <p><strong>Відсоток правильних:</strong> {percentage}%</p>
+                  <p className="score-200"><strong>Бал за шкалою 100-200:</strong> <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{score200}</span></p>
+              </div>
 
-          <div className="detailed-results">
-            <h3>Детальні результати:</h3>
-            <div className="results-list">
-              {finalAnswers.map((answer, index) => {
-                const isCorrect = isAnswerCorrect(answer, index);
-                return (
-                  <div key={index} className={`result-item ${isCorrect ? 'correct' : ''}`}>
-                    <span className="task-number">Завдання {index + 1}:</span>
-                    <span className="answer-text">{formatAnswer(answer, index)}</span>
+              <div className="detailed-results">
+                  <h3>Детальні результати:</h3>
+                  <div className="results-list">
+                      {finalAnswers.map((answer, index) => {
+                          const isCorrect = isAnswerCorrect(answer, index);
+                          return (
+                              <div 
+                                  key={index} 
+                                  className={`result-item ${isCorrect ? 'correct' : ''}`}
+                                  onClick={() => handleTaskClick(index)}
+                                  style={{ cursor: 'pointer' }}
+                              >
+                                  <span className="task-number">Завдання {index + 1}:</span>
+                                  <span className="answer-text">{formatAnswer(answer, index)}</span>
+                              </div>
+                          );
+                      })}
                   </div>
-                );
-              })}
-            </div>
+              </div>
+
+              <div className="completion-buttons">
+                  <button 
+                      onClick={() => handleBackToMenu()}
+                      className="back-to-menu-button"
+                  >
+                      Повернутися до вибору тестів
+                  </button>
+              </div>
+          </div>
+      </MathJaxContext>
+    );
+  }
+
+  if (screenMode === 'review' && reviewTaskIndex !== null) {
+    const task = tasks[reviewTaskIndex];
+    const answer = finalAnswers[reviewTaskIndex];
+    const correctAnswer = correctAnswers[reviewTaskIndex];
+    const isMatchingType = task.type === 'matching';
+    const isInputType = task.type === 'input';
+
+    // Define types for your task variants and options
+    type Variant = {
+        text: string;
+        image?: string;
+    };
+
+    type Option = {
+        text: string;
+    };
+
+    return (
+      <MathJaxContext>
+        <div className="review-screen-container">
+          <div className="review-header-container">
+            <h2 className="review-title">Перегляд завдання {reviewTaskIndex + 1}</h2>
           </div>
 
-          <div className="completion-buttons">
+          <div className="review-content-container">
+            <div className="task-content-container">
+              <div className="task-text-wrapper">
+                <SmartText text={task.text} className="task-main-text-review" />
+              </div>
+              {task.image && (
+                <div className="task-image-wrapper">
+                  <img src={task.image} alt="Завдання" className="task-image-review" />
+                </div>
+              )}
+            </div>
+
+            {/* Display variants for non-matching and non-input tasks */}
+            {!isMatchingType && !isInputType && (
+              <div className="variants-review-container">
+                <div className="all-variants-list">
+                  {task.variants?.map((variant: Variant, idx: number) => {
+                    const variantLabel = ['А', 'Б', 'В', 'Г', 'Д'][idx];
+                    
+                    return (
+                      <div 
+                        key={idx} 
+                        className="variant-item-review"
+                      >
+                        <span className="variant-label">{variantLabel}:</span>
+                        <div className="variant-content">
+                          <SmartText text={variant.text} />
+                          {variant.image && (
+                            <img src={variant.image} alt={`Варіант ${idx + 1}`} className="variant-image" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="answer-feedback-container">
+                  <div className="user-choice-section answer-feedback-item">
+                    <h3 className="user-choice-title">Ваш вибір:</h3>
+                    {answer !== null ? (
+                      <div className="user-choice-value">
+                        {['А', 'Б', 'В', 'Г', 'Д'][Number(answer) - 1]}
+                      </div>
+                    ) : (
+                      <div className="no-choice-message">Не вибрано</div>
+                    )}
+                  </div>
+
+                  <div className="correct-choice-section answer-feedback-item">
+                    <h3 className="correct-choice-title">Правильний вибір:</h3>
+                    <div className="correct-choice-value">
+                      {['А', 'Б', 'В', 'Г', 'Д'][correctAnswer - 1]}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Display matching task review */}
+            {isMatchingType && (
+              <div className="matching-review-container">
+                <h3 className="matching-title">Варіанти відповідей:</h3>
+                <div className="matching-grid-review">
+                  <div className="left-column-review">
+                    {task.leftTitle && (
+                      <div className="column-header">
+                        <SmartText text={task.leftTitle} />
+                      </div>
+                    )}
+                    {task.leftOptions?.map((option: Option, idx: number) => (
+                      <div key={idx} className="left-item">
+                        <strong>{idx + 1}.</strong> <SmartText text={option.text} />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="right-column-review">
+                    {task.rightTitle && (
+                      <div className="column-header">
+                        <SmartText text={task.rightTitle} />
+                      </div>
+                    )}
+                    {task.variants?.map((variant: Variant, idx: number) => (
+                      <div key={idx} className="variant-item">
+                        <span className="variant-label">{['А', 'Б', 'В', 'Г', 'Д'][idx]}:</span>
+                        <SmartText text={variant.text} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="matching-answers-review-container">
+                  <div className="user-matching-answers answer-feedback-item">
+                    <h3 className="user-answers-title">Ваші відповіді:</h3>
+                    {answer && Array.isArray(answer) ? (
+                      answer.map((selectedIdx: number | null, rowIdx: number) => (
+                        <div key={rowIdx} className="matching-answer-row">
+                          <span>{rowIdx + 1} → {selectedIdx !== null ? ['А', 'Б', 'В', 'Г', 'Д'][selectedIdx - 1] : 'Не вибрано'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="no-answer-message">Не відповіли</div>
+                    )}
+                  </div>
+
+                  <div className="correct-matching-answers answer-feedback-item">
+                    <h3 className="correct-answers-title">Правильні відповіді:</h3>
+                    {correctAnswer && Array.isArray(correctAnswer) ? (
+                      correctAnswer.map((correctIdx: number | null, rowIdx: number) => (
+                        <div key={rowIdx} className="matching-answer-row">
+                          <span>{rowIdx + 1} → {correctIdx !== null ? ['А', 'Б', 'В', 'Г', 'Д'][correctIdx - 1] : ''}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="no-correct-answer-message">Немає правильної відповіді</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Display input answer review */}
+            {isInputType && (
+              <div className="input-review-container">
+                <div className="answer-feedback-container">
+                  <div className="user-answer-section answer-feedback-item">
+                    <h3 className="user-answer-title">Ваша відповідь:</h3>
+                    <div className="user-answer-value">
+                      {formatAnswer(answer, reviewTaskIndex)}
+                    </div>
+                  </div>
+
+                  <div className="correct-answer-section answer-feedback-item">
+                    <h3 className="correct-answer-title">Правильна відповідь:</h3>
+                    <div className="correct-answer-value">
+                      {formatAnswer(correctAnswer, reviewTaskIndex)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button 
-              onClick={() => navigate(-1)}
-              className="back-to-menu-button"
+              onClick={() => setScreenMode('completion')}
+              className="review-back-button"
             >
-              Повернутися до вибору тестів
+              Повернутися до результатів
             </button>
           </div>
         </div>
       </MathJaxContext>
     );
   }
+  
 
 
   return (
@@ -770,7 +1182,7 @@ const Test: React.FC = () => {
                       <div className="row-label">{rowIdx + 1}</div>
                       {[0, 1, 2, 3, 4].map(colIdx => {
                         // Перевіряємо чи вибраний елемент, враховуючи нову індексацію
-                        const isActive = matchingSelections[currentTaskIndex][rowIdx] === (colIdx + 1);
+                        const isActive = matchingSelections[currentTaskIndex]?.[rowIdx] === (colIdx + 1);
                         return (
                           <button
                             key={colIdx}

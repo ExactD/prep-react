@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = 'http://localhost:5415';
+
 const StartPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -12,16 +14,36 @@ const StartPage: React.FC = () => {
 
   useEffect(() => {
     document.body.classList.add('start-page-active');
+    
+    // Функція перевірки авторизації
+    const checkAuth = async () => {
+      try {
+        const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (profileResponse.ok) {
+          localStorage.removeItem('testCompleted');
+          navigate('/tests');
+        }
+      } catch (error) {
+        console.error('Помилка при перевірці авторизації:', error);
+      }
+    };
+    
+    checkAuth();
+
     return () => {
       document.body.classList.remove('start-page-active');
     };
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async () => {
     try {
       if (isLogin) {
         // Логін
-        const res = await fetch('http://localhost:5414/login', {
+        const res = await fetch(`${API_BASE_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -33,6 +55,7 @@ const StartPage: React.FC = () => {
         const data = await res.json();
         if (res.ok) {
           console.log('Успішний вхід:', data);
+          localStorage.removeItem('testCompleted');
           navigate('/tests');
         } else {
           alert(data.error || 'Помилка входу');
@@ -44,7 +67,7 @@ const StartPage: React.FC = () => {
           return;
         }
 
-        const res = await fetch('http://localhost:5414/register', {
+        const res = await fetch(`${API_BASE_URL}/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
