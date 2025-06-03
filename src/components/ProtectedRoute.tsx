@@ -1,11 +1,10 @@
 import React, { useEffect, useState, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
+import API_BASE_URL from '../API-BASE-URL';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
-
-const API_BASE_URL = 'http://localhost:5415';
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
