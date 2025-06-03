@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../selecttest.css';
 import '../profile.css';
 import '../confirmation.css';
-
-const API_BASE_URL = 'http://localhost:5415';
+import API_BASE_URL from '../API-BASE-URL';
 
 interface ActiveTest {
   id: number;
@@ -109,8 +108,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test2505',
       name: 'НМТ 25.05.2024 (2 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'hard',
-      difficultyText: 'Складний',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
       questions: 22,
       time: '60 хв'
     },
@@ -119,8 +118,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0106',
       name: 'НМТ 01.06.2024 (3 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'medium',
-      difficultyText: 'Середній',
+      difficulty: 'hard',
+      difficultyText: 'Складний',
       questions: 22,
       time: '60 хв'
     }

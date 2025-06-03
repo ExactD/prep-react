@@ -6,9 +6,9 @@ import HelpPage from './HelpPage';
 import SmartText from './SmartText';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../API-BASE-URL';
 
 type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion' | 'review';
-const API_BASE_URL = 'http://localhost:5415';
 
 interface BackendResponse {
   message: string;
@@ -35,6 +35,9 @@ async function loadData(condition: any) {
   } else if (condition === 2) {
     const module = await import('../data/2505/Task');
     tasks = module.default;
+  } else if (condition === 3) {
+    const module = await import('../data/0106/Task');
+    tasks = module.default;
   }
   
   return tasks;
@@ -48,6 +51,9 @@ async function loadAnsware(condition: any) {
     correctAnswers = module.default;
   } else if (condition === 2) {
     const module = await import('../data/2505/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 3) {
+    const module = await import('../data/0106/CorrectAnswers');
     correctAnswers = module.default;
   }
   
@@ -101,6 +107,7 @@ const Test: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewTaskIndex, setReviewTaskIndex] = useState<number | null>(null);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Додаємо useRef для відстеження, чи вже був викликаний saveAndDisplayAnswers
@@ -800,6 +807,14 @@ const Test: React.FC = () => {
     navigate(-1);
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setEnlargedImage(imageUrl);
+  };
+
+  const handleCloseEnlarged = () => {
+    setEnlargedImage(null);
+  };
+
   const currentTask = tasks[currentTaskIndex];
   const isMatchingType = currentTask && currentTask.type === 'matching';
   const isInputType = currentTask && isInputTask(currentTask);
@@ -1129,7 +1144,12 @@ const Test: React.FC = () => {
             <div className="button-content">
               <SmartText text={currentTask.text} className="main-text" />
               {currentTask.image && (
-                <img src={currentTask.image} alt="Завдання" className="button-image" />
+                <img 
+                  src={currentTask.image} 
+                  alt="Завдання" 
+                  className="button-image task-image"
+                  onClick={() => handleImageClick(currentTask.image)}
+                />
               )}
             </div>
 
@@ -1217,7 +1237,12 @@ const Test: React.FC = () => {
                       <span className="variant-label">{['А', 'Б', 'В', 'Г', 'Д'][idx]}:</span>
                       <SmartText text={variant.text} />
                       {'image' in variant && variant.image && (
-                        <img src={variant.image} alt={`Варіант ${idx + 1}`} className="variant-image" />
+                        <img 
+                          src={variant.image} 
+                          alt={`Варіант ${idx + 1}`} 
+                          className="variant-image"
+                          onClick={() => handleImageClick(variant.image)}
+                        />
                       )}
                     </div>
                   ))}
@@ -1272,6 +1297,19 @@ const Test: React.FC = () => {
           </>
         ) : (
           <HelpPage onBack={() => setScreenMode('test')} />
+        )}
+
+        {enlargedImage && (
+          <div className="enlarged-image-overlay" onClick={handleCloseEnlarged}>
+            <div className="enlarged-image-container">
+              <img 
+                src={enlargedImage} 
+                alt="Збільшене зображення" 
+                className="enlarged-image"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
         )}
       </div>
     </MathJaxContext>
