@@ -1,1 +1,1 @@
-export default 'https://my-node-project-lemon.vercel.app:5415';
+export default 'https://my-node-project-lemon.vercel.app';
