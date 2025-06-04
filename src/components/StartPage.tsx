@@ -17,16 +17,14 @@ const StartPage: React.FC = () => {
   const [resendTimeout, setResendTimeout] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const checkAuth = async () => {
       try {
         setIsLoading(true);
         const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'include', // Важливо для cookies
           headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json', // Додаємо Content-Type
+            'Content-Type': 'application/json',
           },
         });
         
@@ -68,7 +66,7 @@ const StartPage: React.FC = () => {
 
         const data = await res.json();
         if (res.ok) {
-          localStorage.setItem('token', data.token); // ← Зберігаємо токен!
+          // Токен тепер зберігається в cookies, не потрібно localStorage
           navigate('/tests');
         } else {
           alert(data.error || 'Помилка входу');
@@ -289,5 +287,3 @@ const StartPage: React.FC = () => {
     </div>
   );
 };
-
-export default StartPage;

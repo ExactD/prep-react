@@ -1,1 +1,1 @@
-export default 'https://my-node-project-snowy.vercel.app';
+export default 'https://my-node-project-bice.vercel.app/';
