@@ -26,6 +26,7 @@ const StartPage: React.FC = () => {
           credentials: 'include',
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', // Додаємо Content-Type
           },
         });
         
