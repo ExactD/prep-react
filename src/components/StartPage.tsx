@@ -18,16 +18,14 @@ const StartPage: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
       try {
         setIsLoading(true);
         const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
           method: 'GET',
+          credentials: 'include',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          credentials: 'include' // Важно для работы с cookies
         });
         
         if (profileResponse.ok) {
