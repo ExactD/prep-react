@@ -131,10 +131,15 @@ const TestSelection: React.FC = () => {
 
   const fetchUserProfile = useCallback(async () => {
     setProfileLoading(true);
+    const token = localStorage.getItem("token");
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
+        },
       });
 
       if (!profileResponse.ok) {
@@ -147,7 +152,8 @@ const TestSelection: React.FC = () => {
       const testsResponse = await fetch(`${API_BASE_URL}/test/all`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         body: JSON.stringify({ user_id: profile.id }),
         credentials: 'include',
@@ -168,10 +174,15 @@ const TestSelection: React.FC = () => {
   }, []);
 
   const checkForActiveTest = useCallback(async () => {
+    const token = localStorage.getItem("token");
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
+        },
       });
       
       if (!profileResponse.ok) return;
@@ -180,7 +191,8 @@ const TestSelection: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/test/get`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         body: JSON.stringify({ user_id: profile.id }),
         credentials: 'include',
@@ -273,11 +285,16 @@ const TestSelection: React.FC = () => {
 
   const handleConfirmTestStart = useCallback(async () => {
     if (!selectedTest) return;
+    const token = localStorage.getItem("token");
 
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
+        },
       });
 
       if (!profileResponse.ok) {
@@ -291,7 +308,8 @@ const TestSelection: React.FC = () => {
       const activeTestResponse = await fetch(`${API_BASE_URL}/test/get`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         body: JSON.stringify({ user_id: userId }),
         credentials: 'include',
@@ -309,7 +327,8 @@ const TestSelection: React.FC = () => {
       const createResponse = await fetch(`${API_BASE_URL}/test/create`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         credentials: 'include',
         body: JSON.stringify({

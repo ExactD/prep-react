@@ -61,11 +61,13 @@ async function loadAnsware(condition: any) {
 }
 
 const getTestID = async (userId: number, navigate: Function) => {
+  const token = localStorage.getItem("token");
   try {
     const res = await fetch(`${API_BASE_URL}/test/get`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json', // Додаємо Content-Type
       },
       body: JSON.stringify({ user_id: userId }),
       credentials: 'include',
@@ -152,9 +154,14 @@ const Test: React.FC = () => {
   // Отримання профілю користувача при завантаженні компонента
   useEffect(() => {
     const fetchUserProfile = async () => {
+      const token = localStorage.getItem("token");
       try {
         const res = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
+        },
         credentials: 'include',
       });
 
@@ -296,12 +303,14 @@ const Test: React.FC = () => {
   };
 
   async function getUserTestData(userId: number): Promise<(number | number[] | null)[]> {
+    const token = localStorage.getItem("token");
     try {
       // Запит до бекенду для отримання даних
       const response = await fetch(`${API_BASE_URL}/progress/get`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -499,12 +508,14 @@ const Test: React.FC = () => {
     if (valuesToSave.length > 0) {
       try {
         for (const item of valuesToSave) {
+          const token = localStorage.getItem("token");
           try {
             // Спочатку пробуємо оновити запис
             const updateResponse = await fetch(`${API_BASE_URL}/progress/update`, {
               method: 'PUT',
               headers: {
-                'Content-Type': 'application/json'
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json', // Додаємо Content-Type
               },
               credentials: 'include',
               body: JSON.stringify({
@@ -520,7 +531,8 @@ const Test: React.FC = () => {
               const progressResponse = await fetch(`${API_BASE_URL}/progress/add`, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json'
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json', // Додаємо Content-Type
                 },
                 credentials: 'include',
                 body: JSON.stringify({
@@ -563,12 +575,13 @@ const Test: React.FC = () => {
     const taskIdentifier = subTaskIndex 
         ? `${taskIndex + 1}.${subTaskIndex}` 
         : taskIndex + 1;
-
+    const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${API_BASE_URL}/progress/remove`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -614,9 +627,14 @@ const Test: React.FC = () => {
 
     setIsSubmitting(true);
     
+    const token = localStorage.getItem("token");
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
+        },
         credentials: 'include',
       });
 
@@ -646,7 +664,8 @@ const Test: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/test/update`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         credentials: 'include',
         body: JSON.stringify({
