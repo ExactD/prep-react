@@ -341,7 +341,8 @@ const TestSelection: React.FC = () => {
       const deleteProgress = await fetch(`${API_BASE_URL}/progress/delete`, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Додаємо Content-Type
         },
         credentials: 'include',
         body: JSON.stringify({
