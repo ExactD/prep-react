@@ -10,13 +10,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const checkAuth = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/profile`, {
           method: 'GET',
           credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         });
 

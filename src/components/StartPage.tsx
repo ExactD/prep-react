@@ -17,6 +17,7 @@ const StartPage: React.FC = () => {
   const [resendTimeout, setResendTimeout] = useState(0);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const checkAuth = async () => {
       try {
         setIsLoading(true);
@@ -24,7 +25,7 @@ const StartPage: React.FC = () => {
           method: 'GET',
           credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         });
         
