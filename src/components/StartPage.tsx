@@ -149,9 +149,7 @@ const StartPage: React.FC = () => {
         setResendTimeout(60);
         if (data.devCode) {
           console.log('Новий код підтвердження (для розробки):', data.devCode);
-          alert(`DEV MODE: Новий код підтвердження: ${data.devCode}`);
         }
-        alert('Новий код підтвердження відправлено на ваш email');
       } else {
         alert(data.error || 'Помилка при відправці коду підтвердження');
       }

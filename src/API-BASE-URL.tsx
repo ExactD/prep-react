@@ -1,2 +1,2 @@
-export default 'https://my-node-project-ruby.vercel.app';
+export default 'https://my-node-project-beta.vercel.app';
 //
