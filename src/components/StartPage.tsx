@@ -68,6 +68,7 @@ const StartPage: React.FC = () => {
 
         const data = await res.json();
         if (res.ok) {
+          localStorage.setItem('token', data.token); // ← Зберігаємо токен!
           navigate('/tests');
         } else {
           alert(data.error || 'Помилка входу');
