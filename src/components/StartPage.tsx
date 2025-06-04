@@ -71,7 +71,7 @@ const StartPage: React.FC = () => {
           localStorage.setItem('token', data.token); // ← Зберігаємо токен!
           navigate('/tests');
         } else {
-          alert(data.error || 'Помилка входу');
+          alert(data.error || 'Помилка входу   ');
         }
       } else {
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
