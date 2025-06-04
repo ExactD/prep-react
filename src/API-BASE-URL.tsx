@@ -1,1 +1,1 @@
-export default process.env.REACT_APP_API_BASE_URL || 'http://localhost:5415';
+export default 'https://my-node-project-bice.vercel.app';
