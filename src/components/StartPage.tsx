@@ -120,7 +120,6 @@ const StartPage: React.FC = () => {
           setResendTimeout(60);
           if (data.devCode) {
             console.log('Код підтвердження (для розробки):', data.devCode);
-            alert(`DEV MODE: Код підтвердження: ${data.devCode}`);
           }
         } else {
           alert(data.error || 'Помилка при відправці коду підтвердження');
