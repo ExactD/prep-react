@@ -189,6 +189,7 @@ const Test: React.FC = () => {
           hasLoadedAnswers.current = true;
         } catch (error) {
           console.error('Помилка при завантаженні відповідей:', error);
+          alert('Помилка при завантаженні відповідей. Перезагрузіть сторінку!');
         }
       };
 
@@ -291,12 +292,53 @@ const Test: React.FC = () => {
       setMatchingSelections(newMatchingSelections);
       setInputAnswers(newInputAnswers);
 
+      // 6. НОВА ЛОГІКА: Знаходимо перше невиконане завдання або переходимо на останнє
+      const findFirstIncompleteTask = () => {
+        for (let i = 0; i < tasksCount; i++) {
+          const task = tasks[i];
+          const answer = newFinalAnswers[i];
+          
+          // Перевіряємо чи завдання виконане
+          let isCompleted = false;
+          
+          if (task.type === 'matching') {
+            // Завдання на відповідність вважається виконаним, якщо є хоча б одна відповідь
+            isCompleted = Array.isArray(answer) && answer.some(item => item !== null);
+          } else if (task.type === 'input') {
+            // Input завдання вважається виконаним, якщо є непорожнє значення
+            isCompleted = answer !== null && answer !== undefined && String(answer).trim() !== '';
+          } else {
+            // Звичайні завдання вважаються виконаними, якщо є вибір
+            isCompleted = answer !== null && answer !== undefined;
+          }
+          
+          if (!isCompleted) {
+            return i; // Повертаємо індекс першого невиконаного завдання
+          }
+        }
+        
+        // Якщо всі завдання виконані, повертаємо останнє завдання
+        return tasksCount - 1;
+      };
+
+      // 7. Встановлюємо поточний індекс завдання
+      const targetTaskIndex = findFirstIncompleteTask();
+      setCurrentTaskIndex(targetTaskIndex);
+
       console.log('Successfully loaded answers:', {
         currentSelections: newCurrentSelections,
         matchingSelections: newMatchingSelections,
         inputAnswers: newInputAnswers,
-        tasksTypes: tasks.map(t => t.type)
+        tasksTypes: tasks.map(t => t.type),
+        targetTaskIndex: targetTaskIndex,
+        taskInfo: `Перехід на завдання ${targetTaskIndex + 1}`
       });
+
+      // 8. Опціонально: прокручуємо до верху після встановлення завдання
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+
     } catch (error) {
       console.error('Failed to load answers:', error);
     }
@@ -502,6 +544,16 @@ const Test: React.FC = () => {
       }
     }
 
+    // Переходимо до наступного завдання або до підтвердження
+    if (currentTaskIndex === tasks.length - 1) {
+      setScreenMode('confirmation');
+    } else {
+      setTimeout(() => {
+        setCurrentTaskIndex(prev => prev + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 0);
+    }
+
     setFinalAnswers(updatedFinalAnswers);
 
     // Зберігаємо прогрес на бекенд тільки якщо є що зберігати
@@ -556,16 +608,6 @@ const Test: React.FC = () => {
       } catch (error) {
         console.warn('General error saving progress:', error);
       }
-    }
-
-    // Переходимо до наступного завдання або до підтвердження
-    if (currentTaskIndex === tasks.length - 1) {
-      setScreenMode('confirmation');
-    } else {
-      setTimeout(() => {
-        setCurrentTaskIndex(prev => prev + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 0);
     }
   };
 
