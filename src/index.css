@@ -55,8 +55,8 @@
   .main-text {
     font-size: 22px;
     color: #333;
-    max-width: 70%;
-    padding: 0 40px;
+    max-width: 50%;
+    padding: 0 80px;
   }
 
   .help-button {
@@ -98,7 +98,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  padding: 0 30px;
+  padding: 0 80px;
 }
 
 .variant-item {
@@ -139,7 +139,7 @@
   margin-top: 1rem;
   display: flex;
   gap: 1rem;
-  padding: 0 30px;
+  padding: 0 80px;
 }
 
 .variant-button {
@@ -184,6 +184,7 @@
 
 .save-button {
   display: flex;
+  padding: 0 50px;
 }
 
 .save-task-button {
@@ -223,7 +224,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 1rem;
-  padding: 0 60px;
+  padding: 0 90px;
   font-size: 20px;
   color: #2c2c2c;
 }
@@ -246,7 +247,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 0 0px;
+  padding: 0 60px;
 }
 
 .header-row,
@@ -341,6 +342,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  padding: 0 50px;
 }
 
 .input-field {
@@ -424,4 +426,53 @@
 
 .task-image:hover, .variant-image:hover {
   transform: scale(1.02);
+}
+
+.timer-container {
+  position: fixed;
+  bottom: 15%;
+  right: 20px;
+  display: flex;
+  align-items: center; /* Вирівнюємо по одній лінії */
+  gap: 8px;
+  z-index: 1000;
+}
+
+.timer {
+  margin-top: 10%;
+  font-size: 1.25rem;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 700;
+  color: #2c3e50;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 500px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  user-select: none;
+}
+
+.toggle-timer-button {
+  font-size: 1.25rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Спрощені іконки (можна замінити на SVG або шрифтові іконки) */
+.toggle-timer-button::before {
+  content: "☑"; /* Просте коло (око) */
+}
+
+.toggle-timer-button[data-visible="false"]::before {
+  content: "☐"; /* Коло з хрестиком (закрите око) */
 }

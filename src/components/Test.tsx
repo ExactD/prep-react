@@ -111,19 +111,27 @@ const Test: React.FC = () => {
   const [reviewTaskIndex, setReviewTaskIndex] = useState<number | null>(null);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [timeLeft, setTimeLeft] = useState<number>(3599);
+  const [isTimerVisible, setIsTimerVisible] = useState(true);
 
   // Додаємо useRef для відстеження, чи вже був викликаний saveAndDisplayAnswers
   const hasLoadedAnswers = useRef(false);
+
+  const resetTimer = () => {
+    setTimeLeft(3599); // 1 година = 3600 секунд, починаємо з 3599 (59:59)
+    localStorage.setItem('testTimer', '3599');
+  };
 
   // Завантаження завдань при ініціалізації компонента
   useEffect(() => {
     const initializeTasks = async () => {
       try {
-        if (!userProfile) return; // Чекаємо, поки завантажиться профіль
+        if (!userProfile) return;
         
         const testId = await getTestID(userProfile.id, navigate);
         const loadedTasks = await loadData(testId);
         const loadedCorrectAnswers = await loadAnsware(testId);
+        resetTimer();
         
         if (loadedTasks) {
           setTasks(loadedTasks);
@@ -196,6 +204,32 @@ const Test: React.FC = () => {
       loadUserAnswers();
     }
   }, [isLoading, tasks, userProfile]); // Залежності ефекту
+
+  useEffect(() => {
+    // Спроба отримати збережений час
+    const savedTime = localStorage.getItem('testTimer');
+    const initialTime = savedTime ? parseInt(savedTime, 10) : 3599;
+    setTimeLeft(initialTime);
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        const newTime = prev > 0 ? prev - 1 : 0;
+        localStorage.setItem('testTimer', newTime.toString());
+        return newTime;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+      // Не видаляємо timer з localStorage тут, щоб зберегти між перезавантаженнями
+    };
+  }, []);
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Показуємо індикатор завантаження поки tasks не завантажені
   if (isLoading || tasks.length === 0) {
@@ -662,6 +696,7 @@ const Test: React.FC = () => {
   };
 
   const handleFinishTest = async () => {
+    localStorage.removeItem('testTimer');
     if (!userProfile) {
       console.error('Профіль користувача не завантажено');
       return;
@@ -825,6 +860,10 @@ const Test: React.FC = () => {
     } else {
       return answer !== null ? ['А', 'Б', 'В', 'Г', 'Д'][answer - 1] : 'Не відповів';
     }
+  };
+
+  const toggleTimerVisibility = () => {
+    setIsTimerVisible(prev => !prev);
   };
 
   // Знаходимо бал за 200-бальною шкалою на основі таблиці
@@ -1203,7 +1242,7 @@ const Test: React.FC = () => {
             </div>
 
             <div className="button-content">
-              <SmartText text={currentTask.text} className="main-text" />
+              <SmartText text={'<br>' + currentTask.text} className="main-text" />
               {currentTask.image && (
                 <img 
                   src={currentTask.image} 
@@ -1352,6 +1391,20 @@ const Test: React.FC = () => {
 
             {/* Модальне вікно підтвердження видалено - тепер окрема стадія */}
 
+            <div className="timer-container">
+              {isTimerVisible && (
+                <div className="timer">
+                  {formatTime(timeLeft)}
+                </div>
+              )}
+              <button 
+                onClick={toggleTimerVisibility}
+                className="toggle-timer-button"
+                data-visible={isTimerVisible}
+                aria-label={isTimerVisible ? 'Приховати таймер' : 'Показати таймер'}
+              />
+            </div>
+
             <button onClick={() => setScreenMode('help')} className="help-button">
               Довідка
             </button>
@@ -1373,6 +1426,7 @@ const Test: React.FC = () => {
           </div>
         )}
       </div>
+
     </MathJaxContext>
   );
 };
