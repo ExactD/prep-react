@@ -140,3 +140,20 @@
 .link-btn:hover {
   text-decoration: underline;
 }
+
+/* Додамо нові стилі для кнопки "Забули пароль" */
+.forgot-password-btn {
+  margin-left: 80px;
+  display: block;
+  margin-top: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+}
+
+.forgot-password-btn:hover {
+  color: #2563eb;
+}

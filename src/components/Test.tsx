@@ -38,6 +38,15 @@ async function loadData(condition: any) {
   } else if (condition === 3) {
     const module = await import('../data/0106/Task');
     tasks = module.default;
+  } else if (condition === 4) {
+    const module = await import('../data/0306/Task');
+    tasks = module.default;
+  } else if (condition === 5) {
+    const module = await import('../data/0406/Task');
+    tasks = module.default;
+  } else if (condition === 6) {
+    const module = await import('../data/0506/Task');
+    tasks = module.default;
   }
   
   return tasks;
@@ -54,6 +63,15 @@ async function loadAnsware(condition: any) {
     correctAnswers = module.default;
   } else if (condition === 3) {
     const module = await import('../data/0106/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 4) {
+    const module = await import('../data/0306/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 5) {
+    const module = await import('../data/0406/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 6) {
+    const module = await import('../data/0506/CorrectAnswers');
     correctAnswers = module.default;
   }
   

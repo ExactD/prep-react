@@ -98,8 +98,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test1805',
       name: 'НМТ 18.05.2024 (1 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'easy',
-      difficultyText: 'Легкий',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
       questions: 22,
       time: '60 хв'
     },
@@ -118,8 +118,38 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0106',
       name: 'НМТ 01.06.2024 (3 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'hard',
-      difficultyText: 'Складний',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 4,
+      stringId: 'Test0306',
+      name: 'НМТ 03.06.2024 (4 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 5,
+      stringId: 'Test0406',
+      name: 'НМТ 04.06.2024 (5 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 6,
+      stringId: 'Test0506',
+      name: 'НМТ 05.06.2024 (6 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
       questions: 22,
       time: '60 хв'
     }
