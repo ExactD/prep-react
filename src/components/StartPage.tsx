@@ -123,9 +123,6 @@ const StartPage: React.FC = () => {
           setShowEmailConfirmation(true);
           setResendDisabled(true);
           setResendTimeout(60);
-          if (data.devCode) {
-            console.log('Код підтвердження (для розробки):', data.devCode);
-          }
         } else {
           alert(data.error || 'Помилка при відправці коду підтвердження');
         }
@@ -161,7 +158,6 @@ const StartPage: React.FC = () => {
         if (data.devCode) {
           console.log('Код скидання пароля (для розробки):', data.devCode);
         }
-        alert(data.message || 'Код для скидання пароля відправлено на ваш email');
       } else {
         alert(data.error || 'Помилка при відправці коду скидання пароля');
       }
