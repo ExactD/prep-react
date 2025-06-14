@@ -36,7 +36,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuth) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/tests" replace />;
   }
 
   return <>{children}</>; // коли авторизований — показуємо children

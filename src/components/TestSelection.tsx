@@ -4,6 +4,7 @@ import '../selecttest.css';
 import '../profile.css';
 import '../confirmation.css';
 import API_BASE_URL from '../API-BASE-URL';
+import { useTestId } from './TestIdContext';
 
 interface ActiveTest {
   id: number;
@@ -55,11 +56,9 @@ const useCustomBackNavigation = (
       } else if (showProfile) {
         setShowProfile(false);
       }
-      // Забороняємо реальну навігацію браузера
       window.history.pushState(null, '', window.location.href);
     };
 
-    // Додаємо стан в історію при зміні вкладок
     if (showProfile || showTestConfirmation) {
       window.history.pushState({ customNav: true }, '', window.location.href);
     }
@@ -72,7 +71,6 @@ const useCustomBackNavigation = (
   }, [showProfile, showTestConfirmation, setShowProfile, setShowTestConfirmation]);
 };
 
-
 const TestSelection: React.FC = () => {
   const navigate = useNavigate();
   const [activeTest, setActiveTest] = useState<ActiveTest | null>(null);
@@ -83,14 +81,8 @@ const TestSelection: React.FC = () => {
   const [userTests, setUserTests] = useState<UserTest[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
-
-  // Додаємо хук
-  useCustomBackNavigation(
-    showProfile,
-    showTestConfirmation,
-    setShowProfile,
-    setShowTestConfirmation
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+   const { setTestId1 } = useTestId();
 
   const tests = useMemo(() => [
     {
@@ -159,7 +151,41 @@ const TestSelection: React.FC = () => {
     return tests.find(test => test.id === testId);
   }, [tests]);
 
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsAuthenticated(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/profile`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        const profile = await response.json();
+        setUserProfile(profile);
+      } else {
+        setIsAuthenticated(false);
+        localStorage.removeItem("token");
+      }
+    } catch (error) {
+      setIsAuthenticated(false);
+      localStorage.removeItem("token");
+      console.error('Помилка при перевірці авторизації:', error);
+    }
+  }, []);
+
   const fetchUserProfile = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
     setProfileLoading(true);
     const token = localStorage.getItem("token");
     try {
@@ -168,7 +194,7 @@ const TestSelection: React.FC = () => {
         credentials: 'include',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
+          'Content-Type': 'application/json',
         },
       });
 
@@ -183,7 +209,7 @@ const TestSelection: React.FC = () => {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ user_id: profile.id }),
         credentials: 'include',
@@ -197,32 +223,43 @@ const TestSelection: React.FC = () => {
       setUserTests(Array.isArray(testsData) ? testsData : []);
     } catch (error) {
       console.error('Помилка при отриманні даних:', error);
+      setIsAuthenticated(false);
+      localStorage.removeItem("token");
       setUserTests([]);
     } finally {
       setProfileLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const checkForActiveTest = useCallback(async () => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
         method: 'GET',
         credentials: 'include',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
+          'Content-Type': 'application/json',
         },
       });
       
-      if (!profileResponse.ok) return;
+      if (!profileResponse.ok) {
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
       
       const profile = await profileResponse.json();
       const response = await fetch(`${API_BASE_URL}/test/get`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ user_id: profile.id }),
         credentials: 'include',
@@ -251,10 +288,15 @@ const TestSelection: React.FC = () => {
     }
   }, [getTestInfoById]);
 
-  const handleShowProfile = useCallback(() => {
-    setShowProfile(true);
-    fetchUserProfile();
-  }, [fetchUserProfile]);
+  const handleProfileButtonClick = useCallback(() => {
+    if (isAuthenticated) {
+      setShowProfile(true);
+      fetchUserProfile();
+    } else {
+      localStorage.removeItem('testCompleted');
+      navigate('/auth');
+    }
+  }, [isAuthenticated, fetchUserProfile, navigate]);
 
   const handleBackToTests = useCallback(() => {
     setShowProfile(false);
@@ -264,6 +306,104 @@ const TestSelection: React.FC = () => {
     setShowTestConfirmation(false);
     setSelectedTest(null);
   }, []);
+
+  const handleResumeTest = useCallback(() => {
+    if (!activeTest) return;
+    navigate('/test/math');
+  }, [activeTest, navigate]);
+
+  const handleSelectTestClick = useCallback((testId: number) => {
+    const test = tests.find(t => t.id === testId);
+    if (test) {
+      setSelectedTest(test);
+      setShowTestConfirmation(true);
+    }
+  }, [tests]);
+
+  const handleConfirmTestStart = useCallback(async () => {
+    if (!selectedTest) return;
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      setTestId1(selectedTest.id);
+      navigate('/test/math');
+      return;
+    }
+
+    try {
+      const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const userProfile = await profileResponse.json();
+      const userId = userProfile.id;
+
+      const activeTestResponse = await fetch(`${API_BASE_URL}/test/get`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
+        credentials: 'include',
+      });
+
+      if (activeTestResponse.ok) {
+        const activeTestData = await activeTestResponse.json();
+        if (activeTestData.test_id && activeTestData.status === 1) {
+          alert('Ви вже маєте активний тест. Завершіть його перед початком нового.');
+          setShowTestConfirmation(false);
+          return;
+        }
+      }
+
+      const createResponse = await fetch(`${API_BASE_URL}/test/create`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userId,
+          test_id: selectedTest.id,
+          status: 1
+        })
+      });
+
+      const deleteProgress = await fetch(`${API_BASE_URL}/progress/delete`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: userId,
+        })
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Помилка при створенні тесту');
+      }
+
+      if (!deleteProgress.ok) {
+        throw new Error('Помилка в видалені прогресу');
+      }
+
+      navigate('/test/math');
+    } catch (error) {
+      console.error('Помилка:', error);
+      alert('Помилка при роботі з тестом. Спробуйте ще раз.');
+    } finally {
+      setShowTestConfirmation(false);
+    }
+  }, [selectedTest, navigate]);
 
   const formatDate = useCallback((dateString: string) => {
     try {
@@ -297,105 +437,16 @@ const TestSelection: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    checkAuth();
     checkForActiveTest();
-  }, [checkForActiveTest]);
+  }, [checkAuth, checkForActiveTest]);
 
-  const handleResumeTest = useCallback(() => {
-    if (!activeTest) return;
-    navigate('/test/math');
-  }, [activeTest, navigate]);
-
-  const handleSelectTestClick = useCallback((testId: number) => {
-    const test = tests.find(t => t.id === testId);
-    if (test) {
-      setSelectedTest(test);
-      setShowTestConfirmation(true);
-    }
-  }, [tests]);
-
-  const handleConfirmTestStart = useCallback(async () => {
-    if (!selectedTest) return;
-    const token = localStorage.getItem("token");
-
-    try {
-      const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-      });
-
-      if (!profileResponse.ok) {
-        navigate('/');
-        return;
-      }
-
-      const userProfile = await profileResponse.json();
-      const userId = userProfile.id;
-
-      const activeTestResponse = await fetch(`${API_BASE_URL}/test/get`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        body: JSON.stringify({ user_id: userId }),
-        credentials: 'include',
-      });
-
-      if (activeTestResponse.ok) {
-        const activeTestData = await activeTestResponse.json();
-        if (activeTestData.test_id && activeTestData.status === 1) {
-          alert('Ви вже маєте активний тест. Завершіть його перед початком нового.');
-          setShowTestConfirmation(false);
-          return;
-        }
-      }
-
-      const createResponse = await fetch(`${API_BASE_URL}/test/create`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          user_id: userId,
-          test_id: selectedTest.id,
-          status: 1
-        })
-      });
-
-      const deleteProgress = await fetch(`${API_BASE_URL}/progress/delete`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          user_id: userId,
-        })
-      });
-
-      if (!createResponse.ok) {
-        throw new Error('Помилка при створенні тесту');
-      }
-
-      if (!deleteProgress.ok) {
-        throw new Error('Помилка в видалені прогресу');
-      }
-
-      navigate('/test/math');
-    } catch (error) {
-      console.error('Помилка:', error);
-      alert('Помилка при роботі з тестом. Спробуйте ще раз.');
-    } finally {
-      setShowTestConfirmation(false);
-    }
-  }, [selectedTest, navigate]);
+  useCustomBackNavigation(
+    showProfile,
+    showTestConfirmation,
+    setShowProfile,
+    setShowTestConfirmation
+  );
 
   const renderProfileView = () => (
     <div className="test-selection">
@@ -553,9 +604,9 @@ const TestSelection: React.FC = () => {
             </div>
             <button 
               className="profile-button"
-              onClick={handleShowProfile}
+              onClick={handleProfileButtonClick}
             >
-              Профіль
+              {isAuthenticated ? 'Профіль' : 'Увійти'}
             </button>
           </div>
         </div>

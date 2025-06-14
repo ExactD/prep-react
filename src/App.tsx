@@ -5,6 +5,7 @@ import TestSelection from './components/TestSelection';
 import Test from './components/Test';
 import './startsstyle.css';
 import ProtectedRoute from './components/ProtectedRoute';
+import { TestIdProvider } from './components/TestIdContext';
 
 interface AppState {
   isLoading: boolean;
@@ -68,7 +69,7 @@ class App extends Component<{}, AppState> {
           
           <Routes>
             <Route 
-              path="/" 
+              path="/auth" 
               element={
                 <this.PageWrapper>
                     <StartPage />
@@ -80,9 +81,9 @@ class App extends Component<{}, AppState> {
               path="/tests" 
               element={
                 <this.PageWrapper>
-                  <ProtectedRoute>
+                  <TestIdProvider>
                     <TestSelection />
-                  </ProtectedRoute>
+                  </TestIdProvider>
                 </this.PageWrapper>
               } 
             />
@@ -91,14 +92,14 @@ class App extends Component<{}, AppState> {
               path="/test/math" 
               element={
                 <this.PageWrapper>
-                  <ProtectedRoute>
+                  <TestIdProvider>
                     <Test />
-                  </ProtectedRoute>
+                  </TestIdProvider>
                 </this.PageWrapper>
               } 
             />
             
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/tests" replace />} />
           </Routes>
         </div>
       </Router>

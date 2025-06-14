@@ -7,6 +7,7 @@ import SmartText from './SmartText';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../API-BASE-URL';
+import { useTestId } from './TestIdContext';
 
 type ScreenMode = 'test' | 'help' | 'confirmation' | 'completion' | 'review';
 
@@ -80,6 +81,9 @@ async function loadAnsware(condition: any) {
 
 const getTestID = async (userId: number, navigate: Function) => {
   const token = localStorage.getItem("token");
+  if (token) {
+    
+  }
   try {
     const res = await fetch(`${API_BASE_URL}/test/get`, {
       method: 'POST',
@@ -131,6 +135,7 @@ const Test: React.FC = () => {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState<number>(3599);
   const [isTimerVisible, setIsTimerVisible] = useState(true);
+  const { testId1 } = useTestId();
 
   // Додаємо useRef для відстеження, чи вже був викликаний saveAndDisplayAnswers
   const hasLoadedAnswers = useRef(false);
@@ -144,21 +149,38 @@ const Test: React.FC = () => {
   useEffect(() => {
     const initializeTasks = async () => {
       try {
-        if (!userProfile) return;
-        
-        const testId = await getTestID(userProfile.id, navigate);
-        const loadedTasks = await loadData(testId);
-        const loadedCorrectAnswers = await loadAnsware(testId);
-        resetTimer();
-        
-        if (loadedTasks) {
-          setTasks(loadedTasks);
-          setCorrectAnswers(loadedCorrectAnswers || []);
-          setCurrentSelections(Array(loadedTasks.length).fill(null));
-          setFinalAnswers(Array(loadedTasks.length).fill(null));
-          setMatchingSelections(Array(loadedTasks.length).fill(null).map(() => [null, null, null]));
-          setInputAnswers(Array(loadedTasks.length).fill(''));
+        //if (!userProfile) return;
+        const token = localStorage.getItem("token");
+        if (token) {
+          const testId = await getTestID(userProfile.id, navigate);
+          const loadedTasks = await loadData(testId);
+          const loadedCorrectAnswers = await loadAnsware(testId);
+
+          if (loadedTasks) {
+            setTasks(loadedTasks);
+            setCorrectAnswers(loadedCorrectAnswers || []);
+            setCurrentSelections(Array(loadedTasks.length).fill(null));
+            setFinalAnswers(Array(loadedTasks.length).fill(null));
+            setMatchingSelections(Array(loadedTasks.length).fill(null).map(() => [null, null, null]));
+            setInputAnswers(Array(loadedTasks.length).fill(''));
+          }
+        } else {
+          const loadedTasks = await loadData(testId1);
+          const loadedCorrectAnswers = await loadAnsware(testId1);
+          if (loadedTasks) {
+            setTasks(loadedTasks);
+            setCorrectAnswers(loadedCorrectAnswers || []);
+            setCurrentSelections(Array(loadedTasks.length).fill(null));
+            setFinalAnswers(Array(loadedTasks.length).fill(null));
+            setMatchingSelections(Array(loadedTasks.length).fill(null).map(() => [null, null, null]));
+            setInputAnswers(Array(loadedTasks.length).fill(''));
+          }
+          if (testId1 === null) {
+            localStorage.removeItem('testCompleted');
+            navigate('/tests');
+          }
         }
+        resetTimer();
       } catch (error) {
         console.error('Помилка завантаження tasks:', error);
       } finally {
@@ -166,10 +188,8 @@ const Test: React.FC = () => {
       }
     };
 
-    if (userProfile) {
-      initializeTasks();
-    }
-  }, [userProfile]); // Додаємо userProfile в залежності
+    initializeTasks();
+  }, []); // Додаємо userProfile в залежності
 
   useEffect(() => {
     setTimeout(() => {
@@ -181,24 +201,28 @@ const Test: React.FC = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       const token = localStorage.getItem("token");
-      try {
-        const res = await fetch(`${API_BASE_URL}/profile`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        credentials: 'include',
-      });
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/profile`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', // Додаємо Content-Type
+          },
+          credentials: 'include',
+        });
 
-        if (res.ok) {
-          const profile = await res.json();
-          setUserProfile(profile);
-        } else {
-          console.error('Помилка при отриманні профілю користувача');
+          if (res.ok) {
+            const profile = await res.json();
+            setUserProfile(profile);
+          } else {
+            console.error('Помилка при отриманні профілю користувача');
+          }
+        } catch (error) {
+          console.error('Помилка при отриманні профілю:', error);
         }
-      } catch (error) {
-        console.error('Помилка при отриманні профілю:', error);
+      } else {
+        console.warn('Розпочате тест для незареєстрованого користувача');
       }
     };
 
@@ -555,10 +579,10 @@ const Test: React.FC = () => {
   };
 
   const handleSaveAnswer = async () => {
-    if (!userProfile || !userProfile.id) {
-      console.error('User profile not loaded, cannot save answer');
-      return;
-    }
+    // if (!userProfile || !userProfile.id) {
+    //   console.error('User profile not loaded, cannot save answer');
+    //   return;
+    // }
 
     let updatedFinalAnswers = [...finalAnswers];
     let valuesToSave = [];
@@ -715,83 +739,96 @@ const Test: React.FC = () => {
 
   const handleFinishTest = async () => {
     localStorage.removeItem('testTimer');
-    if (!userProfile) {
-      console.error('Профіль користувача не завантажено');
-      return;
-    }
-
     setIsSubmitting(true);
     
     const token = localStorage.getItem("token");
-    try {
-      const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        credentials: 'include',
-      });
+    
+    // Перевіряємо, чи є токен (зареєстрований користувач)
+    if (token) {
+      try {
+        const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
 
-      if (!profileResponse.ok) {
-        console.error('Помилка при отриманні профілю користувача');
-        handleBackToMenu();
-        return;
-      }
+        if (!profileResponse.ok) {
+          console.error('Помилка при отриманні профілю користувача');
+          // Для зареєстрованих користувачів все ще перенаправляємо при помилці
+          handleBackToMenu();
+          return;
+        }
 
-      const userProfile = await profileResponse.json();
-      const userId = userProfile.id;
+        const userProfile = await profileResponse.json();
+        const userId = userProfile.id;
 
-      // Отримуємо реальний результат користувача
-      const summary = getAnswerSummary();
-      const userScore = find200ScaleScore(summary.score);
-      const finalScore = typeof userScore === 'number' ? userScore : 0;
+        // Отримуємо реальний результат користувача
+        const summary = getAnswerSummary();
+        const userScore = find200ScaleScore(summary.score);
+        const finalScore = typeof userScore === 'number' ? userScore : 0;
 
-      console.log('Відправляємо результати:', {
-        user_id: userId,
-        test_id: 1,
-        score: finalScore,
-        rawScore: summary.score,
-        answers: finalAnswers
-      });
-
-      // Відправка результатів на бекенд
-      const response = await fetch(`${API_BASE_URL}/test/update`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json', // Додаємо Content-Type
-        },
-        credentials: 'include',
-        body: JSON.stringify({
+        console.log('Відправляємо результати:', {
           user_id: userId,
           test_id: 1,
           score: finalScore,
-          status: 2,
-          old_status: 1,
-          raw_score: summary.score,
+          rawScore: summary.score,
           answers: finalAnswers
-        })
-      });
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Тест успішно оновлено:', result);
-        console.log('Результати користувача:', finalAnswers);
-        setScreenMode('completion');
-      } else {
-        const errorData = await response.json();
-        console.error('Помилка при оновленні тесту:', errorData);
-        console.error('Статус відповіді:', response.status);
-        // Можна показати повідомлення про помилку користувачу
-        alert(`Помилка при збереженні результатів тесту (${response.status}). Спробуйте ще раз.`);
+        // Відправка результатів на бекенд
+        const response = await fetch(`${API_BASE_URL}/test/update`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            user_id: userId,
+            test_id: 1,
+            score: finalScore,
+            status: 2,
+            old_status: 1,
+            raw_score: summary.score,
+            answers: finalAnswers
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Тест успішно оновлено:', result);
+          console.log('Результати користувача:', finalAnswers);
+          setScreenMode('completion');
+        } else {
+          const errorData = await response.json();
+          console.error('Помилка при оновленні тесту:', errorData);
+          console.error('Статус відповіді:', response.status);
+          alert(`Помилка при збереженні результатів тесту (${response.status}). Спробуйте ще раз.`);
+        }
+      } catch (error) {
+        console.error('Помилка при відправці результатів:', error);
+        alert('Помилка з\'єднання. Перевірте інтернет-з\'єднання та спробуйте ще раз.');
       }
-    } catch (error) {
-      console.error('Помилка при відправці результатів:', error);
-      alert('Помилка з\'єднання. Перевірте інтернет-з\'єднання та спробуйте ще раз.');
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      // Логіка для незареєстрованих користувачів
+      console.log('Незареєстрований користувач завершує тест');
+      
+      // Просто показуємо результати без збереження на сервер
+      const summary = getAnswerSummary();
+      console.log('Результати незареєстрованого користувача:', {
+        score: summary.score,
+        scale200Score: find200ScaleScore(summary.score),
+        answers: finalAnswers
+      });
+      
+      // Переходимо до екрану завершення
+      setScreenMode('completion');
     }
+    
+    setIsSubmitting(false);
   };
 
     // Виправлена функція getAnswerSummary
