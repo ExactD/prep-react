@@ -146,12 +146,18 @@ const Test: React.FC = () => {
   };
 
   // Завантаження завдань при ініціалізації компонента
+    // Modify the useEffect hook that initializes tasks
   useEffect(() => {
     const initializeTasks = async () => {
       try {
-        //if (!userProfile) return;
         const token = localStorage.getItem("token");
         if (token) {
+          // Wait for userProfile to be loaded if token exists
+          if (!userProfile) {
+            console.log('Waiting for user profile to load...');
+            return;
+          }
+          
           const testId = await getTestID(userProfile.id, navigate);
           const loadedTasks = await loadData(testId);
           const loadedCorrectAnswers = await loadAnsware(testId);
@@ -189,7 +195,7 @@ const Test: React.FC = () => {
     };
 
     initializeTasks();
-  }, []); // Додаємо userProfile в залежності
+  }, [userProfile, testId1, navigate]); // Add dependencies here
 
   useEffect(() => {
     setTimeout(() => {
@@ -557,7 +563,33 @@ const Test: React.FC = () => {
     });
   };
 
+  // Функція для перетворення строки в число, обробляючи обидва роздільники (кома та крапка)
+  const parseNumberInput = (input: string): number | null => {
+    if (input === '') return null;
+    
+    // Замінюємо кому на крапку для коректного парсингу
+    const normalizedInput = input.replace(/,/g, '.');
+    
+    // Парсимо число
+    const parsedNumber = parseFloat(normalizedInput);
+    
+    // Перевіряємо чи результат є числом
+    if (isNaN(parsedNumber)) return null;
+    
+    return parsedNumber;
+  };
+
+  // Функція для обробки зміни вводу в полі для дробових чисел
   const handleInputChange = (taskIndex: number, value: string) => {
+    // Дозволяємо тільки цифри, крапки, коми та мінус (для від'ємних чисел)
+    const cleanedValue = value.replace(/[^0-9.,-]/g, '');
+    
+    // Перевіряємо чи є тільки одна крапка або кома
+    const hasMultipleDots = (cleanedValue.match(/[.,]/g) || []).length > 1;
+    
+    // Якщо є кілька роздільників - не оновлюємо значення
+    if (hasMultipleDots) return;
+    
     setInputAnswers(prev => {
       const updated = [...prev];
       
@@ -566,7 +598,7 @@ const Test: React.FC = () => {
         removeAnswerFromServer(taskIndex);
       }
       
-      updated[taskIndex] = value;
+      updated[taskIndex] = cleanedValue;
       return updated;
     });
 
@@ -612,7 +644,8 @@ const Test: React.FC = () => {
     } 
     else if (currentTaskIndex >= 18 && currentTaskIndex <= 21) {
       const input = inputAnswers[currentTaskIndex];
-      const processedInput = input.trim() !== '' ? Number(input) : null;
+      // Використовуємо нашу нову функцію для парсингу числа
+      const processedInput = input.trim() !== '' ? parseNumberInput(input) : null;
       updatedFinalAnswers[currentTaskIndex] = processedInput;
       
       if (processedInput !== null && !isNaN(processedInput)) {
@@ -1381,6 +1414,7 @@ const Test: React.FC = () => {
                     onChange={(e) => handleInputChange(currentTaskIndex, e.target.value)}
                     placeholder="Введіть відповідь"
                     className="input-field"
+                    inputMode="decimal" // Показуємо відповідну клавіатуру на мобільних пристроях
                   />
                 </div>
               </>

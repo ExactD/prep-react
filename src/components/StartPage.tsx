@@ -28,7 +28,6 @@ const StartPage: React.FC = () => {
         setIsLoading(true);
         const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
           method: 'GET',
-          credentials: 'include',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json', // Додаємо Content-Type

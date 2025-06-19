@@ -82,7 +82,10 @@ const TestSelection: React.FC = () => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-   const { setTestId1 } = useTestId();
+  const { setTestId1 } = useTestId();
+  const [showSettings, setShowSettings] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
 
   const tests = useMemo(() => [
     {
@@ -436,6 +439,72 @@ const TestSelection: React.FC = () => {
     }
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      await fetch(`${API_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      localStorage.removeItem("token");
+      localStorage.removeItem('testCompleted');
+      
+      setIsAuthenticated(false);
+      setUserProfile(null);
+      setUserTests([]);
+      setShowSettings(false);
+      setShowProfile(false);
+      
+    } catch (error) {
+      console.error('Помилка при виході:', error);
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleUpdateName = async () => {
+    if (!newName.trim()) {
+      alert('Введіть нове ім\'я');
+      return;
+    }
+
+    setIsUpdatingName(true);
+    const token = localStorage.getItem("token");
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/profile`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+
+      if (response.ok) {
+        const updatedProfile = await response.json();
+        setUserProfile(updatedProfile);
+        setNewName('');
+        // Оновлюємо дані профілю
+        await fetchUserProfile();
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Помилка при оновленні імені');
+      }
+    } catch (error) {
+      console.error('Помилка:', error);
+      alert('Помилка з\'єднання');
+    } finally {
+      setIsUpdatingName(false);
+    }
+  };
+
   useEffect(() => {
     checkAuth();
     checkForActiveTest();
@@ -448,6 +517,70 @@ const TestSelection: React.FC = () => {
     setShowTestConfirmation
   );
 
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showSettings) {
+        setShowSettings(false);
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    if (showSettings) {
+      window.history.pushState({ customNav: true }, '', window.location.href);
+    }
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [showSettings]);
+
+  const renderSettingsView = () => (
+    <div className="test-selection">
+      <div className="test-selection-container">
+        <div className="profile-header">
+          <button className="back-button-profile" onClick={() => setShowSettings(false)}>
+            ← Назад до профілю
+          </button>
+          <h1 className="profile-title">Налаштування профілю</h1>
+        </div>
+
+        <div className="settings-content">
+          <div className="settings-section">
+            <h3>Редагувати ім'я</h3>
+            <div className="name-edit-form">
+              <input
+                type="text"
+                placeholder={userProfile?.name || "Введіть нове ім'я"}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="name-input"
+              />
+              <button 
+                onClick={handleUpdateName}
+                disabled={isUpdatingName}
+                className="update-name-btn"
+              >
+                {isUpdatingName ? 'Оновлення...' : 'Оновити'}
+              </button>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h3>Безпека</h3>
+            <button 
+              onClick={handleLogout}
+              className="logout-btn"
+            >
+              Вийти з акаунта
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderProfileView = () => (
     <div className="test-selection">
       <div className="test-selection-container">
@@ -456,6 +589,9 @@ const TestSelection: React.FC = () => {
             ← Назад до тестів
           </button>
           <h1 className="profile-title">Профіль користувача</h1>
+          <button className="settings-button-profile" onClick={() => setShowSettings(true)}>
+            ⚙️
+          </button>
         </div>
 
         {profileLoading ? (
@@ -683,6 +819,7 @@ const TestSelection: React.FC = () => {
     );
   }
 
+  if (showSettings) return renderSettingsView();
   if (showProfile) return renderProfileView();
   if (showTestConfirmation) return renderTestConfirmation();
   return renderTestSelection();
