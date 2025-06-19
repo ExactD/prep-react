@@ -48,6 +48,9 @@ async function loadData(condition: any) {
   } else if (condition === 6) {
     const module = await import('../data/0506/Task');
     tasks = module.default;
+  } else if (condition === 7) {
+    const module = await import('../data/0606/Task');
+    tasks = module.default;
   }
   
   return tasks;
@@ -73,6 +76,9 @@ async function loadAnsware(condition: any) {
     correctAnswers = module.default;
   } else if (condition === 6) {
     const module = await import('../data/0506/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 7) {
+    const module = await import('../data/0606/CorrectAnswers');
     correctAnswers = module.default;
   }
   
@@ -136,6 +142,7 @@ const Test: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<number>(3599);
   const [isTimerVisible, setIsTimerVisible] = useState(true);
   const { testId1 } = useTestId();
+  const [isZoomReset, setIsZoomReset] = useState(false);
 
   // Додаємо useRef для відстеження, чи вже був викликаний saveAndDisplayAnswers
   const hasLoadedAnswers = useRef(false);
@@ -144,6 +151,28 @@ const Test: React.FC = () => {
     setTimeLeft(3599); // 1 година = 3600 секунд, починаємо з 3599 (59:59)
     localStorage.setItem('testTimer', '3599');
   };
+
+  const resetZoom = () => {
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0');
+      setIsZoomReset(true);
+      
+      // Після невеликої затримки повертаємо можливість масштабування
+      setTimeout(() => {
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+        setIsZoomReset(false);
+      }, 300);
+    }
+  };
+
+  // Викликати resetZoom при зміні screenMode
+  useEffect(() => {
+    resetZoom();
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
+  }, [screenMode]);
 
   // Завантаження завдань при ініціалізації компонента
     // Modify the useEffect hook that initializes tasks
@@ -196,12 +225,6 @@ const Test: React.FC = () => {
 
     initializeTasks();
   }, [userProfile, testId1, navigate]); // Add dependencies here
-
-  useEffect(() => {
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 0);
-  }, [screenMode]);
 
   // Отримання профілю користувача при завантаженні компонента
   useEffect(() => {
@@ -1515,6 +1538,7 @@ const Test: React.FC = () => {
           </div>
         )}
       </div>
+      <div style={{ height: '20vh', width: '100%' }}></div>
 
     </MathJaxContext>
   );

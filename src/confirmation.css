@@ -1,41 +1,34 @@
 .test-confirm-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 90vh;
-  width: 100vw;
-  padding: 20px;
+  align-items: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0px;
   background-color: #f8f9fa;
-  overflow: hidden; /* Головне правило - вимикає прокрутку */
-  position: fixed;
   top: 0;
   left: 0;
+  overflow-y: auto;
 }
 
 .test-confirm-box {
   width: 100%;
   max-width: 600px;
   background: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 10px;
   text-align: center;
-  /* Видаляємо всі властивості, пов'язані з прокруткою */
-  max-height: none;
-  overflow: visible; /* Змінюємо на visible */
-}
-
-.test-confirm-box::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  margin: 20px 0;
 }
 
 .confirm-main-title {
-  font-size: 28px;
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
   color: #333;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .test-name-display {
-  font-size: 22px;
+  font-size: clamp(1.2rem, 3vw, 1.375rem);
   color: #2c3e50;
   margin-bottom: 15px;
 }
@@ -44,6 +37,7 @@
   color: #7f8c8d;
   margin-bottom: 20px;
   line-height: 1.5;
+  text-align: left;
 }
 
 .warning-message-confirm {
@@ -51,33 +45,36 @@
   background-color: #fef5e7;
   padding: 12px;
   border-radius: 6px;
-  margin: 0 auto 25px;
-  max-width: 90%;
+  margin: 0 auto 20px;
+  max-width: 100%;
   font-weight: 500;
   border-left: 4px solid #e67e22;
   text-align: center;
+  font-size: clamp(0.9rem, 2vw, 1rem);
 }
 
 .test-specs-center {
-  margin: 0 auto 30px;
-  max-width: 300px;
+  margin: 0 auto 25px;
+  max-width: 100%;
 }
 
 .spec-item {
   margin-bottom: 15px;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .spec-label {
   font-weight: 500;
   color: #7f8c8d;
-  display: inline;
+  margin-right: 5px;
 }
 
 .spec-value {
-  font-size: 18px;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: #2c3e50;
-  display: inline;
 }
 
 .difficulty-1 {
@@ -92,9 +89,18 @@
 
 .confirm-buttons {
   display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 30px;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 25px;
+  align-items: center;
+}
+
+@media (min-width: 480px) {
+  .confirm-buttons {
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+  }
 }
 
 .cancel-btn {
@@ -108,7 +114,17 @@
   font-weight: 500;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
+  width: 100%;
+  max-width: 200px;
+}
+
+@media (min-width: 480px) {
+  .cancel-btn {
+    width: auto;
+    max-width: none;
+  }
 }
 
 .cancel-btn:hover {
@@ -127,8 +143,81 @@
   font-size: 16px;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
+  max-width: 200px;
+}
+
+@media (min-width: 480px) {
+  .confirm-btn {
+    width: auto;
+    max-width: none;
+  }
 }
 
 .confirm-btn:hover {
   background: #219955;
+}
+
+/* Медіа-запити для мобільних пристроїв */
+@media (max-width: 768px) {
+  .test-selection {
+    padding: 10px;
+  }
+  
+  .test-selection-container {
+    padding: 15px;
+  }
+  
+  .profile-header {
+    flex-direction: row;
+    gap: 10px;
+    text-align: center;
+    justify-content: space-between;
+  }
+  
+  .back-button-profile {
+    margin-bottom: 0;
+  }
+  
+  .profile-title {
+    display: none;
+  }
+  
+  .settings-content {
+    padding: 10px;
+  }
+  
+  .user-test-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .test-confirm-box {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-field {
+    font-size: 14px;
+  }
+  
+  .user-test-card {
+    padding: 10px;
+  }
+  
+  .user-test-meta span {
+    font-size: 13px;
+  }
+  
+  .name-input, 
+  .update-name-btn,
+  .logout-btn {
+    font-size: 14px;
+  }
+  
+  .profile-button {
+    font-size: 13px;
+    padding: 8px 15px;
+  }
 }

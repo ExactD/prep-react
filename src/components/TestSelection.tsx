@@ -93,8 +93,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test1805',
       name: 'НМТ 18.05.2024 (1 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'medium',
-      difficultyText: 'Середній',
+      difficulty: 'hard',
+      difficultyText: 'Складний',
       questions: 22,
       time: '60 хв'
     },
@@ -103,8 +103,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test2505',
       name: 'НМТ 25.05.2024 (2 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'medium',
-      difficultyText: 'Середній',
+      difficulty: 'hard',
+      difficultyText: 'Складний',
       questions: 22,
       time: '60 хв'
     },
@@ -113,8 +113,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0106',
       name: 'НМТ 01.06.2024 (3 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'medium',
-      difficultyText: 'Середній',
+      difficulty: 'hard',
+      difficultyText: 'Складний',
       questions: 22,
       time: '60 хв'
     },
@@ -123,8 +123,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0306',
       name: 'НМТ 03.06.2024 (4 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'easy',
-      difficultyText: 'Легкий',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
       questions: 22,
       time: '60 хв'
     },
@@ -147,8 +147,32 @@ const TestSelection: React.FC = () => {
       difficultyText: 'Легкий',
       questions: 22,
       time: '60 хв'
+    },
+    {
+      id: 7,
+      stringId: 'Test0606',
+      name: 'НМТ 06.06.2024 (7 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
     }
   ], []);
+
+  useEffect(() => {
+    // Прокрутка вгору при відкритті підтвердження тесту
+    if (showTestConfirmation) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showTestConfirmation]);
+
+  useEffect(() => {
+    // Прокрутка вгору при поверненні до вибору тесту
+    if (!showTestConfirmation && selectedTest === null && !showProfile && !showSettings) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showTestConfirmation, selectedTest, showProfile, showSettings]);
 
   const getTestInfoById = useCallback((testId: number) => {
     return tests.find(test => test.id === testId);
@@ -308,6 +332,7 @@ const TestSelection: React.FC = () => {
   const handleBackFromConfirmation = useCallback(() => {
     setShowTestConfirmation(false);
     setSelectedTest(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Додайте цей рядок
   }, []);
 
   const handleResumeTest = useCallback(() => {
@@ -735,7 +760,7 @@ const TestSelection: React.FC = () => {
             <div className="header-text">
               <h1 className="test-selection-title">Оберіть тест</h1>
               <p className="test-selection-subtitle">
-                Виберіть один з доступних тестів для перевірки ваших знань
+                Виберіть один з доступних тестів
               </p>
             </div>
             <button 

@@ -1,5 +1,3 @@
-/* profile.css */
-
 /* Основні стилі для профілю */
 .test-selection {
   font-family: 'Arial', sans-serif;
@@ -7,7 +5,7 @@
   margin: 0 auto;
   padding: 20px;
   color: #333;
-  position: relative; /* Додано для контексту позиціонування */
+  position: relative;
 }
 
 .test-selection-container {
@@ -18,6 +16,7 @@
 }
 
 /* Фіксована кнопка профілю */
+
 .profile-button {
   position: fixed; /* Змінено з absolute на fixed */
   top: 20px;
@@ -37,7 +36,6 @@
 
 .profile-button:hover {
   background-color: #3a5a8a;
-  /* Видалено transform для усунення руху */
 }
 
 /* Кнопка "Назад до тестів" */
@@ -47,7 +45,7 @@
   color: #000000;
   cursor: pointer;
   font-size: 16px;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   font-weight: 500;
   display: inline-flex;
@@ -67,7 +65,8 @@
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  gap: 20px;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .profile-title {
@@ -75,6 +74,16 @@
   color: #2c3e50;
   flex-grow: 1;
   text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  order: 2;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .profile-title {
+    order: initial;
+    width: auto;
+  }
 }
 
 /* Інформація про користувача */
@@ -88,6 +97,7 @@
 .profile-field {
   margin-bottom: 10px;
   font-size: 16px;
+  word-break: break-word;
 }
 
 .profile-field strong {
@@ -105,6 +115,7 @@
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   margin-bottom: 20px;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
 }
 
 /* Картки тестів */
@@ -127,14 +138,22 @@
 
 .user-test-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 10px;
+}
+
+@media (min-width: 480px) {
+  .user-test-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .user-test-name {
   margin: 0;
-  font-size: 18px;
+  font-size: clamp(1rem, 3vw, 1.125rem);
   color: #2c3e50;
 }
 
@@ -161,6 +180,7 @@
 
 .user-test-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   margin-top: 10px;
 }
@@ -203,12 +223,20 @@
 
 .settings-button-profile {
   background: none;
-  border: none;
   font-size: 20px;
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
   transition: background-color 0.2s;
+  border: 1px;
+  outline: 1px solid rgb(0, 0, 0);
+  order: 1;
+}
+
+@media (min-width: 768px) {
+  .settings-button-profile {
+    order: 3;
+  }
 }
 
 .settings-button-profile:hover {
@@ -228,17 +256,26 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Додайте ці стилі в кінець вашого CSS файлу */
+/* Форма редагування імені */
 .name-edit-form {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  height: 44px;
-  align-items: center;
+  height: auto;
+  align-items: stretch;
+}
+
+@media (min-width: 480px) {
+  .name-edit-form {
+    flex-direction: row;
+    height: 44px;
+    align-items: center;
+  }
 }
 
 .name-input {
   flex: 1;
-  height: 100%;
+  height: 44px;
   padding: 0 15px;
   margin: 0;
   border: 1px solid #ddd;
@@ -250,7 +287,7 @@
 }
 
 .update-name-btn {
-  height: 100%;
+  height: 44px;
   padding: 0 20px;
   margin: 0;
   background: #66fc58;
@@ -284,4 +321,5 @@
   border-radius: 8px;
   cursor: pointer;
   width: 100%;
+  font-size: 16px;
 }

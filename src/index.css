@@ -18,7 +18,6 @@
   border-radius: 3px;
   cursor: pointer;
   white-space: normal;
-  overflow: hidden;
   text-overflow: ellipsis;
   transition: background-color 0.2s ease;
   aspect-ratio: 1/1;
@@ -483,8 +482,7 @@
   html, body {
     width: 100%;
     height: 100%;
-    overflow-x: hidden;
-    touch-action: pan-y;
+    overflow-x: auto;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     position: fixed; /* Фіксуємо вміст */
@@ -498,8 +496,8 @@
   }
 
   .button-item {
-    flex: 0 0 calc(15% - 8px);
-    min-width: 10px;
+    flex: 0 0 calc(15% - 5px);
+    min-width: 15px;
     padding: 8px 0;
     font-size: 14px;
   }
@@ -520,8 +518,8 @@
   .variant-image,
   .task-image,
   .help-image {
-    width: 100%;
-    max-width: 100%;
+    width: 80%;
+    max-width: 80%;
     padding: 0 12px;
     box-sizing: border-box;
   }
@@ -532,12 +530,14 @@
 
   .variant-item {
     font-size: 20px;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row; /* Змінити з column на row */
+    align-items: center; /* Вирівняти по центру вертикально */
+    gap: 0.5rem; /* Додати проміжок між літерою варіанту і текстом */
   }
 
   .variant-text {
-    font-size: 22px;
+    font-size: 20px;
+    display: inline; /* Забезпечити, щоб текст йшов в один рядок */
   }
 
   .variant-buttons {
@@ -579,7 +579,7 @@
   }
 
   .input-field {
-    width: 100%;
+    width: 50%;
     max-width: 100%;
   }
 
