@@ -133,8 +133,8 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0406',
       name: 'НМТ 04.06.2024 (5 сесія)',
       description: 'Тест основної сесії з математики',
-      difficulty: 'easy',
-      difficultyText: 'Легкий',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
       questions: 22,
       time: '60 хв'
     },
@@ -153,8 +153,118 @@ const TestSelection: React.FC = () => {
       stringId: 'Test0606',
       name: 'НМТ 06.06.2024 (7 сесія)',
       description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 8,
+      stringId: 'Test0706',
+      name: 'НМТ 07.06.2024 (8 сесія)',
+      description: 'Тест основної сесії з математики',
       difficulty: 'medium',
       difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 9,
+      stringId: 'Test1006',
+      name: 'НМТ 10.06.2024 (9 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'hard',
+      difficultyText: 'Важкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 10,
+      stringId: 'Test1106',
+      name: 'НМТ 11.06.2024 (10 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 11,
+      stringId: 'Test1206',
+      name: 'НМТ 12.06.2024 (11 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'hard',
+      difficultyText: 'Важкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 12,
+      stringId: 'Test1306',
+      name: 'НМТ 13.06.2024 (12 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 13,
+      stringId: 'Test1406',
+      name: 'НМТ 14.06.2024 (13 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 14,
+      stringId: 'Test1706',
+      name: 'НМТ 17.06.2024 (14 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 15,
+      stringId: 'Test1806',
+      name: 'НМТ 18.06.2024 (15 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'hard',
+      difficultyText: 'Важкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 16,
+      stringId: 'Test1906',
+      name: 'НМТ 19.06.2024 (16 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'medium',
+      difficultyText: 'Середній',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 17,
+      stringId: 'Test2006',
+      name: 'НМТ 20.06.2024 (17 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'easy',
+      difficultyText: 'Легкий',
+      questions: 22,
+      time: '60 хв'
+    },
+    {
+      id: 18,
+      stringId: 'Test2106',
+      name: 'НМТ 21.06.2024 (18 сесія)',
+      description: 'Тест основної сесії з математики',
+      difficulty: 'hard',
+      difficultyText: 'Важкий',
       questions: 22,
       time: '60 хв'
     }

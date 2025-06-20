@@ -51,6 +51,39 @@ async function loadData(condition: any) {
   } else if (condition === 7) {
     const module = await import('../data/0606/Task');
     tasks = module.default;
+  } else if (condition === 8) {
+    const module = await import('../data/0706/Task');
+    tasks = module.default;
+  } else if (condition === 9) {
+    const module = await import('../data/1006/Task');
+    tasks = module.default;
+  } else if (condition === 10) {
+    const module = await import('../data/1106/Task');
+    tasks = module.default;
+  } else if (condition === 11) {
+    const module = await import('../data/1206/Task');
+    tasks = module.default;
+  } else if (condition === 12) {
+    const module = await import('../data/1306/Task');
+    tasks = module.default;
+  } else if (condition === 13) {
+    const module = await import('../data/1406/Task');
+    tasks = module.default;
+  } else if (condition === 14) {
+    const module = await import('../data/1706/Task');
+    tasks = module.default;
+  } else if (condition === 15) {
+    const module = await import('../data/1806/Task');
+    tasks = module.default;
+  } else if (condition === 16) {
+    const module = await import('../data/1906/Task');
+    tasks = module.default;
+  } else if (condition === 17) {
+    const module = await import('../data/2006/Task');
+    tasks = module.default;
+  } else if (condition === 18) {
+    const module = await import('../data/2106/Task');
+    tasks = module.default;
   }
   
   return tasks;
@@ -79,6 +112,39 @@ async function loadAnsware(condition: any) {
     correctAnswers = module.default;
   } else if (condition === 7) {
     const module = await import('../data/0606/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 8) {
+    const module = await import('../data/0706/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 9) {
+    const module = await import('../data/1006/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 10) {
+    const module = await import('../data/1106/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 11) {
+    const module = await import('../data/1206/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 12) {
+    const module = await import('../data/1306/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 13) {
+    const module = await import('../data/1406/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 14) {
+    const module = await import('../data/1706/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 15) {
+    const module = await import('../data/1806/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 16) {
+    const module = await import('../data/1906/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 17) {
+    const module = await import('../data/2006/CorrectAnswers');
+    correctAnswers = module.default;
+  } else if (condition === 18) {
+    const module = await import('../data/2106/CorrectAnswers');
     correctAnswers = module.default;
   }
   
@@ -1532,7 +1598,7 @@ const Test: React.FC = () => {
                 src={enlargedImage} 
                 alt="Збільшене зображення" 
                 className="enlarged-image"
-                onClick={(e) => e.stopPropagation()}
+                // onClick={(e) => e.stopPropagation()}
               />
             </div>
           </div>

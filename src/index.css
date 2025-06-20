@@ -408,14 +408,17 @@
 
 .enlarged-image-container {
   width: 70%; /* Фіксована ширина 80% екрану */
+  height: 90%; /* Фіксована ширина 80% екрану */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .enlarged-image {
-  width: 100%; /* Займає всю ширину контейнера */
-  height: auto; /* Автоматична висота для збереження пропорцій */
+  max-width: 100%; /* Максимальна ширина контейнера */
+  max-height: 100%; /* Максимальна висота контейнера */
+  width: auto; /* Автоматична ширина */
+  height: auto; /* Автоматична висота */
   object-fit: contain;
   border-radius: 8px;
 }
